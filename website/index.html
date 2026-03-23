@@ -14,8 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="alternate icon" href="favicon.ico" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -48,11 +47,16 @@
               <a class="button button-primary" href="#product">See The Product</a>
               <a class="button button-secondary" href="#market">See The Market Case</a>
             </div>
-            <ul class="hero-points">
-              <li>Manage information without living across browser tabs.</li>
-              <li>Create grounded documents and briefs with multimodal context.</li>
-              <li>Execute tasks locally, with coding only when the work needs it.</li>
-            </ul>
+            <div class="hero-meta">
+              <div class="hero-stat">
+                <strong>One workspace</strong>
+                <span>for information, documents, visuals, and execution</span>
+              </div>
+              <div class="hero-stat">
+                <strong>Built for real work</strong>
+                <span>students, researchers, operators, builders</span>
+              </div>
+            </div>
           </div>
 
           <div class="hero-stage" aria-label="Product illustration">
@@ -62,23 +66,40 @@
                 <span></span>
                 <span></span>
               </div>
+              <div class="context-ribbon">
+                <p class="panel-label">Connected Context</p>
+                <div class="context-items">
+                  <span>Gmail</span>
+                  <span>Drive</span>
+                  <span>Search</span>
+                  <span>Maps</span>
+                  <span>Local Files</span>
+                </div>
+              </div>
               <div class="stage-grid">
-                <section class="panel panel-source">
-                  <p class="panel-label">Google Context</p>
-                  <h2>Gmail, Drive, Search, Maps, local files</h2>
-                  <p>
-                    Pull the material that matters into one live working surface.
-                  </p>
-                </section>
                 <section class="panel panel-brief">
-                  <p class="panel-label">Work Request</p>
+                  <p class="panel-label">Incoming Objective</p>
                   <p class="panel-quote">
-                    Build a decision brief, draft the response, save the document,
-                    and prepare the next action.
+                    Build a decision brief on CBAM India, draft the response,
+                    save the document, and line up the next action.
                   </p>
+                  <div class="source-tags">
+                    <span>client email</span>
+                    <span>drive memo</span>
+                    <span>web sources</span>
+                    <span>local notes</span>
+                  </div>
+                </section>
+                <section class="panel panel-workflow">
+                  <p class="panel-label">Gemini Workflow</p>
+                  <ul class="workflow-steps">
+                    <li>Pull the right context into one working surface.</li>
+                    <li>Ground the answer with live sources and project material.</li>
+                    <li>Turn the result into a brief, draft, and next action.</li>
+                  </ul>
                 </section>
                 <section class="panel panel-output">
-                  <p class="panel-label">Outputs</p>
+                  <p class="panel-label">Artifacts</p>
                   <ul class="output-list">
                     <li>
                       <span>Research Brief</span>
@@ -123,18 +144,28 @@
             <p class="eyebrow">Story</p>
             <h2>Desktop work is still fragmented. The models are ready. The product layer is not.</h2>
           </div>
-          <div class="section-copy">
-            <p>
-              People already use AI for research, planning, writing, visuals, and
-              coding. What they still do not have is one desktop tool that makes
-              those flows feel coherent. gKestral is built to be that missing
-              workbench.
-            </p>
-            <p>
-              It packages Gemini into a product that feels practical every day:
-              less tab switching, less copy-paste, more grounded output, and a
-              stronger path from information to action.
-            </p>
+          <div class="story-grid">
+            <div class="section-copy">
+              <p>
+                People already use AI for research, planning, writing, visuals,
+                and coding. What they still do not have is one desktop tool that
+                makes those flows feel coherent. gKestral is built to be that
+                missing workbench.
+              </p>
+              <p>
+                It packages Gemini into a product that feels practical every day:
+                less tab switching, less copy-paste, more grounded output, and a
+                stronger path from information to action.
+              </p>
+            </div>
+            <aside class="story-panel">
+              <p class="panel-label">What Changes</p>
+              <ul class="story-points">
+                <li>One surface replaces the usual spread of tabs and tools.</li>
+                <li>Documents become outputs, not separate chores.</li>
+                <li>Visuals, files, and context live inside the same loop.</li>
+              </ul>
+            </aside>
           </div>
         </section>
 
@@ -143,35 +174,50 @@
             <p class="eyebrow">Product</p>
             <h2>Not another chat window. A desktop surface for serious work.</h2>
           </div>
-          <div class="capability-grid">
-            <article class="feature-card">
-              <h3>Work from real context</h3>
+          <div class="product-layout">
+            <div class="product-showcase">
+              <p class="panel-label">Product Thesis</p>
+              <h3>A Gemini-native desktop layer for managing information and producing finished work.</h3>
               <p>
-                Pull in emails, documents, source material, notes, screenshots,
-                and local files without breaking the flow.
+                gKestral is designed to feel useful before it feels impressive.
+                It helps users gather what matters, understand it faster, and
+                convert it into output from the same place.
               </p>
-            </article>
-            <article class="feature-card">
-              <h3>Turn information into documents</h3>
-              <p>
-                Move from scattered inputs to briefs, reports, drafts, and
-                decision-ready material with Gemini-native reasoning.
-              </p>
-            </article>
-            <article class="feature-card">
-              <h3>Use visuals as first-class input</h3>
-              <p>
-                Work naturally with images, UI references, diagrams, and other
-                multimodal material instead of treating them like attachments.
-              </p>
-            </article>
-            <article class="feature-card">
-              <h3>Execute when the work calls for it</h3>
-              <p>
-                Move from thinking to action inside the same product, including
-                structured tasks, automations, edits, and code when appropriate.
-              </p>
-            </article>
+            </div>
+            <div class="capability-grid">
+              <article class="feature-card">
+                <span class="feature-number">01</span>
+                <h3>Work from real context</h3>
+                <p>
+                  Pull in emails, documents, source material, notes, screenshots,
+                  and local files without breaking the flow.
+                </p>
+              </article>
+              <article class="feature-card">
+                <span class="feature-number">02</span>
+                <h3>Turn information into documents</h3>
+                <p>
+                  Move from scattered inputs to briefs, reports, drafts, and
+                  decision-ready material with Gemini-native reasoning.
+                </p>
+              </article>
+              <article class="feature-card">
+                <span class="feature-number">03</span>
+                <h3>Use visuals as first-class input</h3>
+                <p>
+                  Work naturally with images, UI references, diagrams, and other
+                  multimodal material instead of treating them like attachments.
+                </p>
+              </article>
+              <article class="feature-card">
+                <span class="feature-number">04</span>
+                <h3>Execute when the work calls for it</h3>
+                <p>
+                  Move from thinking to action inside the same product, including
+                  structured tasks, automations, edits, and code when appropriate.
+                </p>
+              </article>
+            </div>
           </div>
         </section>
 
@@ -210,38 +256,42 @@
             <p class="eyebrow">Market</p>
             <h2>The opening is clear: powerful models exist, but everyday work is still split across too many surfaces.</h2>
           </div>
-          <div class="market-grid">
+          <div class="market-layout">
             <article class="market-card market-card-main">
-              <h3>Why this can matter</h3>
+              <p class="panel-label">The Product Bet</p>
+              <h3>AI products will be won by experience, not model access alone.</h3>
               <p>
-                The next wave of AI products will not win by access to models
-                alone. They will win by turning model capability into a daily-use
-                product people trust for real objectives.
+                The next breakout desktop tool will not just answer questions. It
+                will manage context, create documents, understand visuals, and
+                carry users into real execution. That is the opening gKestral is
+                built for.
               </p>
             </article>
-            <article class="market-card">
-              <h3>Why Gemini</h3>
-              <p>
-                Gemini is unusually strong where desktop work gets hard: large
-                context, multimodal understanding, research flows, and rich Google
-                service adjacency.
-              </p>
-            </article>
-            <article class="market-card">
-              <h3>Why desktop</h3>
-              <p>
-                Real work still happens across files, folders, screenshots,
-                documents, and local tools. The browser alone is not enough.
-              </p>
-            </article>
-            <article class="market-card">
-              <h3>Why now</h3>
-              <p>
-                Users are ready for one serious workspace that can manage
-                information, produce documents, and move into execution without
-                feeling like a toy.
-              </p>
-            </article>
+            <div class="market-grid">
+              <article class="market-card">
+                <h3>Why Gemini</h3>
+                <p>
+                  Gemini is unusually strong where desktop work gets hard: large
+                  context, multimodal understanding, research flows, and rich
+                  Google service adjacency.
+                </p>
+              </article>
+              <article class="market-card">
+                <h3>Why desktop</h3>
+                <p>
+                  Real work still happens across files, folders, screenshots,
+                  documents, and local tools. The browser alone is not enough.
+                </p>
+              </article>
+              <article class="market-card">
+                <h3>Why now</h3>
+                <p>
+                  Users are ready for one serious workspace that can manage
+                  information, produce documents, and move into execution without
+                  feeling like a toy.
+                </p>
+              </article>
+            </div>
           </div>
         </section>
 
