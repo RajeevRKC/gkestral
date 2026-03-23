@@ -5,7 +5,7 @@ status: active
 created: 2026-03-22
 owner: Commander
 language: Go
-description: Gemini-native multimodal research and execution workspace for coding, design, and grounded problem solving
+description: Gemini-native desktop workbench for turning scattered information into finished documents, presentations, and research-backed outputs
 tags: [gemini, cli, go, agentic, multimodal, research, grounding]
 ---
 

@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gKestral — Crystallized Requirements</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #0b0f14;
+    --bg-secondary: #111820;
+    --bg-tertiary: #161d27;
+    --bg-card: #131a24;
+    --bg-card-hover: #182030;
+    --border-subtle: rgba(220, 224, 232, 0.06);
+    --border-medium: rgba(220, 224, 232, 0.10);
+    --border-strong: rgba(220, 224, 232, 0.16);
+    --text-primary: #dce0e8;
+    --text-secondary: #8b95a5;
+    --text-tertiary: #5c6675;
+    --text-accent: #a0c4ff;
+    --green-bg: rgba(52, 211, 153, 0.06);
+    --green-border: rgba(52, 211, 153, 0.25);
+    --green-text: #6ee7b7;
+    --green-dot: #34d399;
+    --amber-bg: rgba(251, 191, 36, 0.06);
+    --amber-border: rgba(251, 191, 36, 0.25);
+    --amber-text: #fcd34d;
+    --amber-dot: #fbbf24;
+    --red-bg: rgba(248, 113, 113, 0.06);
+    --red-border: rgba(248, 113, 113, 0.25);
+    --red-text: #fca5a5;
+    --red-dot: #f87171;
+    --blue-bg: rgba(96, 165, 250, 0.06);
+    --blue-border: rgba(96, 165, 250, 0.20);
+    --blue-text: #93c5fd;
+    --purple-bg: rgba(167, 139, 250, 0.08);
+    --purple-border: rgba(167, 139, 250, 0.25);
+    --purple-text: #c4b5fd;
+    --purple-dot: #a78bfa;
+    --accent-gradient: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    --mastery-gradient: linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%);
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* === STICKY HEADER === */
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(11, 15, 20, 0.82);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0 24px;
+  }
+  .sticky-header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: var(--accent-gradient);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--bg-primary);
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+  .header-title span { color: var(--text-secondary); font-weight: 400; }
+  .header-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber-text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* === MAIN LAYOUT === */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  /* === HERO === */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 640px;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+  }
+  .hero-meta-item { display: flex; align-items: center; gap: 6px; }
+  .hero-meta-item strong { color: var(--text-secondary); font-weight: 500; }
+
+  /* === SECTIONS === */
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .section-number {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+  .section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 28px 0 14px;
+    color: var(--text-accent);
+    letter-spacing: -0.01em;
+  }
+  .section p, .section li {
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .settled-tag, .status-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .settled-tag {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    color: var(--green-text);
+  }
+
+  /* === IDENTITY TABLE === */
+  .identity-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .identity-card .card-header-bar {
+    padding: 16px 20px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .identity-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+  }
+  .identity-grid .cell {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 14px;
+  }
+  .identity-grid .cell:nth-last-child(-n+2) { border-bottom: none; }
+  .identity-grid .label {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-size: 13px;
+    background: rgba(0,0,0,0.15);
+  }
+  .identity-grid .value { color: var(--text-primary); }
+  .identity-grid .value strong { color: var(--text-accent); font-weight: 600; }
+  .identity-grid .value code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-medium);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--green-text);
+  }
+
+  /* === TABLES === */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border-medium);
+    margin: 16px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead { background: var(--bg-tertiary); }
+  thead th {
+    padding: 11px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-medium);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.015); }
+  td:first-child { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 13px; }
+  .resolution-text { color: var(--text-primary); }
+  .resolution-text strong { color: var(--green-text); font-weight: 600; }
+  .new-desc-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-left: 3px solid #60a5fa;
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-style: italic;
+    color: var(--text-accent);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* === CHECKBOX LISTS === */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    transition: background 0.15s;
+  }
+  .checklist li:hover { background: rgba(255,255,255,0.02); }
+  .check-box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border-strong);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .check-box:checked {
+    background: var(--green-dot);
+    border-color: var(--green-dot);
+  }
+  .check-box:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 5px;
+    width: 5px; height: 9px;
+    border: solid var(--bg-primary); border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .check-label { flex: 1; font-size: 14px; color: var(--text-secondary); }
+
+  /* categorized checklists */
+  .checklist-section { margin-bottom: 8px; }
+  .checklist-section.must-have .section-label { color: var(--green-text); }
+  .checklist-section.should-have .section-label { color: var(--amber-text); }
+  .checklist-section.defer .section-label { color: var(--text-tertiary); }
+  .checklist-section.keep .section-label { color: var(--blue-text); }
+  .checklist-section.drop .section-label { color: var(--red-text); }
+  .checklist-section.drop .check-label { text-decoration: line-through; color: var(--text-tertiary); }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 16px 4px;
+    display: block;
+  }
+
+  /* === DECISION CARDS === */
+  .decision-card {
+    background: var(--bg-card);
+    border: 1px solid var(--amber-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .decision-card-header {
+    padding: 16px 20px;
+    background: var(--amber-bg);
+    border-bottom: 1px solid var(--amber-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .decision-card-header h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--amber-text);
+    flex: 1;
+  }
+  .decision-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    color: var(--amber-text);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .decision-card .table-wrap {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+  }
+  .decision-card table { font-size: 13px; }
+  .decision-card thead { background: rgba(251, 191, 36, 0.03); }
+
+  /* === RECOMMENDED BADGE === */
+  .recommended-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    color: var(--green-text);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+
+  /* === RISK TABLE === */
+  .severity-high {
+    color: var(--red-text);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .severity-medium {
+    color: var(--amber-text);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* === CONSENSUS LIST === */
+  .consensus-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+    counter-reset: consensus;
+  }
+  .consensus-list li {
+    counter-increment: consensus;
+    display: flex;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    align-items: flex-start;
+  }
+  .consensus-list li:hover { background: rgba(255,255,255,0.02); }
+  .consensus-list li::before {
+    content: counter(consensus);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    min-width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .consensus-list li strong { color: var(--green-text); font-weight: 600; }
+
+  /* === PHASE CARDS -- GEMINI MASTERY HERO === */
+  .phase-hero {
+    position: relative;
+    background: var(--bg-card);
+    border: 2px solid var(--purple-border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .phase-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--mastery-gradient);
+  }
+  .phase-hero-header {
+    padding: 28px 28px 0;
+  }
+  .phase-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-border);
+    color: var(--purple-text);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .phase-hero-badge .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--purple-dot);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .phase-hero h3 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin: 0 0 10px;
+    background: var(--mastery-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .phase-hero .phase-goal {
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .phase-hero .phase-subgoal {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+  .phase-hero-body {
+    padding: 0 28px 28px;
+  }
+  .phase-hero .model-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .model-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-medium);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .model-chip code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--purple-text);
+    font-weight: 500;
+  }
+  .model-chip .model-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+  .model-chip-full {
+    grid-column: 1 / -1;
+  }
+  .deep-dive-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .deep-dive-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .deep-dive-item:hover { background: rgba(167, 139, 250, 0.04); }
+  .deep-dive-item .check-box {
+    border-color: var(--purple-border);
+  }
+  .deep-dive-item .check-box:checked {
+    background: var(--purple-dot);
+    border-color: var(--purple-dot);
+  }
+  .deep-dive-item .item-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .deep-dive-item .item-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .deep-dive-item .item-detail {
+    color: var(--text-tertiary);
+    font-size: 12px;
+  }
+  .phase-output {
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-medium);
+    border-left: 3px solid var(--purple-dot);
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .phase-output strong {
+    color: var(--purple-text);
+    font-weight: 600;
+  }
+  .deep-dive-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin: 20px 0 8px;
+    display: block;
+  }
+
+  /* === STANDARD PHASE CARDS === */
+  .phase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .phase-card-header {
+    padding: 18px 22px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .phase-number-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-border);
+    color: var(--blue-text);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .phase-card-header h4 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+  .phase-card-body {
+    padding: 20px 22px;
+  }
+  .phase-card-body .phase-goal-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .phase-card-body .phase-goal-text em {
+    color: var(--text-primary);
+    font-style: italic;
+  }
+
+  /* === COMMANDER QUOTE === */
+  .commander-quote {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-left: 4px solid var(--purple-dot);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+    margin: 24px 0 32px;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--text-accent);
+    line-height: 1.65;
+  }
+  .commander-quote .attribution {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    font-style: normal;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    letter-spacing: 0.03em;
+  }
+
+  /* === RATIONALE BLOCK === */
+  .rationale-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-left: 3px solid var(--amber-dot);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    font-size: 14px;
+  }
+
+  /* === FOOTER === */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    line-height: 1.8;
+  }
+  .footer strong { color: var(--text-secondary); font-weight: 500; }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 680px) {
+    .hero h1 { font-size: 28px; }
+    .identity-grid { grid-template-columns: 120px 1fr; }
+    .phase-hero h3 { font-size: 22px; }
+    .phase-hero .model-grid { grid-template-columns: 1fr; }
+    .deep-dive-grid { grid-template-columns: 1fr; }
+    .hero-meta { gap: 14px; }
+    .phase-hero-header, .phase-hero-body { padding-left: 20px; padding-right: 20px; }
+    .decision-card table { font-size: 12px; }
+    .model-chip-full { grid-column: 1; }
+  }
+  @media (max-width: 480px) {
+    .sticky-header-inner { height: 56px; }
+    .header-title { font-size: 15px; }
+    .container { padding: 32px 16px 64px; }
+    .hero h1 { font-size: 24px; }
+    .section h2 { font-size: 19px; }
+    .identity-grid { grid-template-columns: 1fr; }
+    .identity-grid .label { background: rgba(0,0,0,0.25); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== STICKY HEADER ===== -->
+<header class="sticky-header">
+  <div class="sticky-header-inner">
+    <div class="header-brand">
+      <div class="header-logo">gK</div>
+      <div class="header-title">gKestral <span>Requirements</span></div>
+    </div>
+    <div class="header-badge">Draft</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <h1>gKestral -- Crystallized Requirements</h1>
+    <p class="hero-subtitle">
+      Three AI models analysed 11 documents, surfaced 6 contradictions and 8 open questions,
+      then converged on this requirements baseline. Commander decides.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><strong>Version</strong> 1.0</div>
+      <div class="hero-meta-item"><strong>Created</strong> 2026-03-23</div>
+      <div class="hero-meta-item"><strong>Status</strong> DRAFT</div>
+    </div>
+    <div class="hero-meta" style="margin-top: 10px;">
+      <div class="hero-meta-item"><strong>Sources</strong> Mandan (cross-doc analysis), Codex GPT-5.4 (product strategy), Gemini 3.1 Pro Deep Think (7-pass Aletheia)</div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 1: PRODUCT IDENTITY ===== -->
+  <section class="section" id="identity">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>Product Identity</h2>
+      <span class="settled-tag">Settled</span>
+    </div>
+
+    <p style="margin-bottom: 20px; font-weight: 600; font-size: 16px; color: var(--text-primary);">
+      gKestral is a new-era office tool. <span style="color: var(--text-secondary); font-weight: 400;">Not a coding CLI. Not a chatbot.
+      Not an autonomous agent. A desktop workbench where AI creates and the user directs.</span>
+    </p>
+
+    <div class="identity-card">
+      <div class="card-header-bar">Product Definition</div>
+      <div class="identity-grid">
+        <div class="cell label">Tagline</div>
+        <div class="cell value"><strong>"For those who want control."</strong></div>
+        <div class="cell label">Subtitle</div>
+        <div class="cell value">"AI designed to work for you. Your office in a terminal."</div>
+        <div class="cell label">Identity</div>
+        <div class="cell value">Information-first desktop workbench</div>
+        <div class="cell label">Engine</div>
+        <div class="cell value">Gemini-native (not model-agnostic)</div>
+        <div class="cell label">Architecture</div>
+        <div class="cell value">Two-pane: chat/direction left, artifacts right</div>
+        <div class="cell label">Outputs</div>
+        <div class="cell value">DOCX, PPTX, research briefs, images, code (when needed)</div>
+        <div class="cell label">Philosophy</div>
+        <div class="cell value">People tool. Human directs, AI produces, human refines.</div>
+        <div class="cell label">Stack</div>
+        <div class="cell value"><code>Go 1.23+</code> / <code>Wails v2</code> / <code>Raw REST + SSE</code> / Single binary</div>
+        <div class="cell label">Tier</div>
+        <div class="cell value"><code>T1</code> ship-grade</div>
+        <div class="cell label">Brand</div>
+        <div class="cell value">gKestral (lowercase g, capital K). Domain: <strong>gkestral.com</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 2: RESOLVED CONTRADICTIONS ===== -->
+  <section class="section" id="contradictions">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>Resolved Contradictions</h2>
+      <span class="settled-tag">Settled</span>
+    </div>
+
+    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+      All three models agreed on resolutions. No dissent.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Contradiction</th><th>Resolution</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Google integrations deferred to v0.2</td>
+            <td class="resolution-text"><strong>Move to v0.1.</strong> Drive, Gmail, Search are day-one identity.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>DOCX/PPTX generation missing from roadmap</td>
+            <td class="resolution-text"><strong>Add to v0.1.</strong> Primary product output. Not optional.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Execution Core weighted Heavy in PROJECT.md</td>
+            <td class="resolution-text"><strong>Reclassify to Light.</strong> Reliable and invisible.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>PROJECT.md description still says "coding"</td>
+            <td class="resolution-text"><strong>Rewrite.</strong> New description below.</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Phase 01-04 assume coding-CLI-first</td>
+            <td class="resolution-text"><strong>Restructure roadmap.</strong> New phases below.</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Website says "terminal" as identity</td>
+            <td class="resolution-text"><strong>Keep for now.</strong> Commander chose this language deliberately.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="new-desc-block">
+      <strong style="color: var(--text-primary); display: block; margin-bottom: 6px; font-style: normal; font-size: 12px; font-family: var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase;">New PROJECT.md Description</strong>
+      "Gemini-native desktop workbench for turning scattered information into
+      finished documents, presentations, and research-backed outputs."
+    </div>
+  </section>
+
+  <!-- ===== SECTION 3: CONSENSUS -- v0.1 ===== -->
+  <section class="section" id="consensus-v01">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2>Consensus: What v0.1 Must Contain</h2>
+    </div>
+
+    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+      All three models converged independently on these v0.1 requirements:
+    </p>
+
+    <!-- Must Have -->
+    <div class="checklist-section must-have">
+      <span class="section-label">Must Have (v0.1)</span>
+      <ul class="checklist">
+        <li><input type="checkbox" class="check-box"><span class="check-label">Single Google OAuth (progressive permissioning)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Gemini streaming with context caching and thought signatures</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Two-pane Wails desktop app (chat left, artifacts right)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Google Search Grounding (native Gemini API, same key)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Google Drive: open/save/browse files</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Gmail: read/import emails as context</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Document generation: real DOCX files to local workspace</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Document generation: real PPTX files to local workspace</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">PDF/web page ingestion as context</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Research cards with citations in right pane</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Session persistence (local disk, folders are the workspace)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Artifact preview in right pane (HTML/CSS render)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Human-in-the-loop: user approves before file writes</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Local file watching and workspace attachment</span></li>
+      </ul>
+    </div>
+
+    <!-- Should Have -->
+    <div class="checklist-section should-have">
+      <span class="section-label">Should Have (v0.1 if capacity allows)</span>
+      <ul class="checklist">
+        <li><input type="checkbox" class="check-box"><span class="check-label">Presentation generation: real PPTX with templates/themes</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Subscription tier detection and feature gating</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Token/usage tracking and budget display</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Model routing (Flash for speed, Pro for depth)</span></li>
+      </ul>
+    </div>
+
+    <!-- Defer -->
+    <div class="checklist-section defer">
+      <span class="section-label">Defer (v0.2+)</span>
+      <ul class="checklist">
+        <li><input type="checkbox" class="check-box"><span class="check-label">Maps integration</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">MCP client</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Stitch integration</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Eval suite / benchmarks</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Autoresearch / self-improvement</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Calendar integration</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">NotebookLM bridge</span></li>
+      </ul>
+    </div>
+
+    <!-- Keep -->
+    <div class="checklist-section keep">
+      <span class="section-label">Keep from Old Roadmap (as invisible infrastructure)</span>
+      <ul class="checklist">
+        <li><input type="checkbox" class="check-box"><span class="check-label">File read/write tools (behind the scenes)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Search/grep tools (behind the scenes)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Command execution with approval flow</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Git operations (available but not primary UI)</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Context management (observation masking, token budgets)</span></li>
+      </ul>
+    </div>
+
+    <!-- Drop -->
+    <div class="checklist-section drop">
+      <span class="section-label">Drop</span>
+      <ul class="checklist">
+        <li><input type="checkbox" class="check-box"><span class="check-label">Code diff viewer as primary artifact type</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Terminal emulation as product identity</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Ripgrep-led UX</span></li>
+        <li><input type="checkbox" class="check-box"><span class="check-label">Fully autonomous agentic loops</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 4: PHASE STRUCTURE (COMMANDER-DIRECTED) ===== -->
+  <section class="section" id="phase-structure">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>Revised v0.1 Phase Structure</h2>
+      <span class="settled-tag" style="background: var(--purple-bg); border-color: var(--purple-border); color: var(--purple-text);">Commander-Directed</span>
+    </div>
+
+    <div class="commander-quote">
+      "Understanding Gemini models, Google APIs -- in depth -- and strategy to go
+      beyond existing tools in harnessing Gemini to perfection."
+      <span class="attribution">-- Commander</span>
+    </div>
+
+    <!-- ===== PHASE 01: GEMINI MASTERY (HERO CARD) ===== -->
+    <div class="phase-hero">
+      <div class="phase-hero-header">
+        <div class="phase-hero-badge"><span class="dot"></span> Phase 01 -- Centrepiece</div>
+        <h3>Gemini Mastery</h3>
+        <p class="phase-goal">Know the engine deeper than anyone. This is the competitive moat.</p>
+        <p class="phase-subgoal">Comprehensive deep-dive into every Gemini capability, pricing model, and behavioural pattern.</p>
+      </div>
+      <div class="phase-hero-body">
+
+        <span class="deep-dive-label">Target Models (current generation only)</span>
+        <div class="model-grid">
+          <div class="model-chip">
+            <div>
+              <code>gemini-3.1-pro-preview</code>
+              <div class="model-desc">Deep reasoning, architecture, research synthesis</div>
+            </div>
+          </div>
+          <div class="model-chip">
+            <div>
+              <code>gemini-3.1-flash</code>
+              <div class="model-desc">Fast coding, information extraction, high-volume</div>
+            </div>
+          </div>
+          <div class="model-chip">
+            <div>
+              <code>gemini-3.1-flash-image-preview</code>
+              <div class="model-desc">Nano Banana Pro -- image generation</div>
+            </div>
+          </div>
+          <div class="model-chip">
+            <div>
+              <code>gemini-2.5-pro / 2.5-flash</code>
+              <div class="model-desc">Production stable, context caching</div>
+            </div>
+          </div>
+          <div class="model-chip model-chip-full">
+            <div>
+              <code>+ any new models announced during development</code>
+              <div class="model-desc">Future-proofing the research scope</div>
+            </div>
+          </div>
+        </div>
+
+        <span class="deep-dive-label">Deep-Dive Areas (13 domains)</span>
+        <div class="deep-dive-grid">
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Streaming (SSE)</strong> <span class="item-detail">-- partial chunks, reconnection, backpressure</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Thought signatures</strong> <span class="item-detail">-- mandatory circulation in 3.x, budget/level control</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Context caching</strong> <span class="item-detail">-- stable/active split, TTL, economics (90% discount), minimum token thresholds</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Search Grounding</strong> <span class="item-detail">-- native API tool, grounding metadata, citation extraction</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Code Execution</strong> <span class="item-detail">-- built-in Python sandbox, when to use vs local execution</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Multimodal input</strong> <span class="item-detail">-- image/PDF/audio ingestion, token costs per modality</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Function calling</strong> <span class="item-detail">-- parallel calls, id-based matching, tool declaration patterns</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>System instruction</strong> <span class="item-detail">-- what Gemini responds to vs ignores, optimisation</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Temperature/safety</strong> <span class="item-detail">-- 1.0 mandatory for 3.x (lower causes looping), safety tuning</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Token economics</strong> <span class="item-detail">-- input/output pricing per model, caching discount tiers</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Model routing strategy</strong> <span class="item-detail">-- when Pro vs Flash vs Flash Lite vs NanoBanana</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Error patterns</strong> <span class="item-detail">-- 429 retry, model fallback chains, stream recovery</span></div>
+          </div>
+          <div class="deep-dive-item">
+            <input type="checkbox" class="check-box">
+            <div class="item-text"><strong>Observation masking</strong> <span class="item-detail">-- JetBrains research: 50%+ cost reduction, same solve rate</span></div>
+          </div>
+        </div>
+
+        <div class="phase-output">
+          <strong>Output:</strong> Deep reference document + Go client library that exploits every capability.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PHASE 02: GOOGLE API & SDK LANDSCAPE ===== -->
+    <div class="phase-card">
+      <div class="phase-card-header">
+        <span class="phase-number-badge">Phase 02</span>
+        <h4>Google API & SDK Landscape</h4>
+      </div>
+      <div class="phase-card-body">
+        <p class="phase-goal-text">
+          <em>Goal:</em> Map the full Google API surface for information access. Understand what
+          a single OAuth token can unlock, what costs what, and how to build progressive permissioning.
+        </p>
+
+        <span class="deep-dive-label">API Deep-Dive Areas</span>
+        <ul class="checklist">
+          <li><input type="checkbox" class="check-box"><span class="check-label">Google OAuth 2.0 -- desktop app flow, progressive scopes, token refresh</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Drive API v3 -- file browse/open/save, folder structure, permissions</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Gmail API -- read messages, search, import as context, draft creation</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Google Search (via Gemini Grounding) -- how it works, metadata, citations</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Google AI SDK (<code>google-genai</code> for Go) -- vs raw REST, trade-offs</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Vertex AI -- when needed vs direct Gemini API, pricing differences</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Rate limits and quotas per API, per tier (free vs paid Google account)</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Scope economics -- minimal scopes for v0.1, expansion path for v0.2+</span></li>
+        </ul>
+
+        <span class="deep-dive-label">Skills, Agents & Prompt Engineering</span>
+        <ul class="checklist">
+          <li><input type="checkbox" class="check-box"><span class="check-label">MCP protocol -- what it offers, when to use vs native Go brokers</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Agent patterns -- planner/executor, research/action split</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Prompt engineering for Gemini specifically -- what works, what doesn't</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">System prompt structure -- role, constraints, output format, tool guidance</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Few-shot vs zero-shot performance on Gemini 3.x models</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Structured output (JSON mode) -- reliability, schema enforcement</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Chain-of-thought vs direct answering -- when each is optimal</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Grounding + function calling combination (3.x VALIDATED mode)</span></li>
+        </ul>
+
+        <div class="phase-output" style="border-left-color: var(--blue-text);">
+          <strong style="color: var(--blue-text);">Output:</strong> API strategy document + OAuth prototype + prompt engineering playbook.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PHASE 03: ARCHITECTURE FROM INTELLIGENCE ===== -->
+    <div class="phase-card">
+      <div class="phase-card-header">
+        <span class="phase-number-badge">Phase 03</span>
+        <h4>Architecture from Intelligence</h4>
+      </div>
+      <div class="phase-card-body">
+        <p class="phase-goal-text">
+          <em>Goal:</em> Design the architecture AFTER we understand the engine. Not before.
+          Every design decision grounded in Phase 01-02 findings.
+        </p>
+
+        <ul class="checklist">
+          <li><input type="checkbox" class="check-box"><span class="check-label">System architecture informed by Gemini capability map</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Wails v2 scaffold with two-pane UI (leveraging existing POC)</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Go backend structure: engine, tools, services, workspace</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Context management strategy (based on caching findings)</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Model routing implementation (based on model comparison findings)</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Google service integration layer (based on API findings)</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Session persistence and workspace model</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Tool architecture (file ops, search, command execution -- invisible)</span></li>
+        </ul>
+
+        <div class="phase-output" style="border-left-color: var(--blue-text);">
+          <strong style="color: var(--blue-text);">Output:</strong> Working architecture with Gemini streaming, OAuth, and session persistence.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PHASE 04: FIRST WORKING SURFACE ===== -->
+    <div class="phase-card">
+      <div class="phase-card-header">
+        <span class="phase-number-badge">Phase 04</span>
+        <h4>First Working Surface</h4>
+      </div>
+      <div class="phase-card-body">
+        <p class="phase-goal-text">
+          <em>Goal:</em> The v0.1 that proves the thesis. Information in, finished work out.
+        </p>
+
+        <ul class="checklist">
+          <li><input type="checkbox" class="check-box"><span class="check-label">Information ingestion -- PDF, web pages, Drive files, Gmail, local files</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Research cards with citations in right pane</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Document generation -- real DOCX to local workspace</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Presentation generation -- real PPTX to local workspace</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Artifact preview in right pane</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">Human-in-the-loop approval before file writes</span></li>
+          <li><input type="checkbox" class="check-box"><span class="check-label">The hero demo works end-to-end</span></li>
+        </ul>
+
+        <div class="phase-output" style="border-left-color: var(--green-dot);">
+          <strong style="color: var(--green-text);">Output:</strong> Shippable v0.1 binary that a non-developer can use to produce real work.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 5: DECISIONS NEEDED ===== -->
+  <section class="section" id="decisions">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>Decisions Needed From Commander</h2>
+      <span class="status-tag" style="background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text);">4 Open</span>
+    </div>
+
+    <!-- Decision 1 -->
+    <div class="decision-card">
+      <div class="decision-card-header">
+        <h4>Decision 1: First Wedge User</h4>
+        <span class="decision-badge">Awaiting</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Proposed By</th><th>Argument</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--text-primary);">A. Student/Researcher</strong></td>
+              <td>Codex</td>
+              <td>Matches hero use case, needs Google, cares about deliverables</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">B. Technical Founder/TPM</strong></td>
+              <td>Gemini</td>
+              <td>Lives at intersection of information + code, Commander IS this user, validates business model</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">C. Mixed power user</strong></td>
+              <td>(neither)</td>
+              <td>Broader but harder to focus</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Decision 2 -->
+    <div class="decision-card">
+      <div class="decision-card-header">
+        <h4>Decision 2: Dual-Mode (Office/Dev) or Single Surface?</h4>
+        <span class="decision-badge">Awaiting</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Proposed By</th><th>Argument</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--text-primary);">A. Explicit Office/Dev toggle</strong></td>
+              <td>Gemini</td>
+              <td>Clear separation, coding doesn't pollute information UX</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">B. Single surface, code hidden</strong></td>
+              <td>Codex</td>
+              <td>Simpler, code surfaces only when user asks for it</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Decision 3 -->
+    <div class="decision-card">
+      <div class="decision-card-header">
+        <h4>Decision 3: Hero Demo Scenario for v0.1</h4>
+        <span class="decision-badge">Awaiting</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Proposed By</th><th>Scenario</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: var(--text-primary);">A. School presentation</strong></td>
+              <td>Commander (vision)</td>
+              <td>"I need a presentation for school tomorrow" -> research + PPTX</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">B. Product launch brief</strong></td>
+              <td>Gemini</td>
+              <td>PRD from Drive + email thread + web research -> DOCX + PPTX -> pivot to code</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">C. PDF drop + research</strong></td>
+              <td>Mandan</td>
+              <td>Drop PDF, ask question, get grounded answer, save DOCX</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Decision 4 -->
+    <div class="decision-card" style="border-color: var(--green-border);">
+      <div class="decision-card-header" style="background: var(--green-bg); border-bottom-color: var(--green-border);">
+        <h4 style="color: var(--green-text);">Decision 4: v0.1 Phase Structure</h4>
+        <span class="decision-badge" style="background: var(--green-bg); border-color: var(--green-border); color: var(--green-text);">Select One</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Proposed By</th></tr></thead>
+          <tbody>
+            <tr style="background: var(--green-bg);">
+              <td><strong style="color: var(--green-text);">A. Commander-directed</strong><span class="recommended-badge" style="margin-left: 10px;">Recommended</span></td>
+              <td>Gemini Mastery -> Google APIs -> Architecture from Intelligence -> First Working Surface</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">B. Codex's structure</strong></td>
+              <td>Identity -> Research -> Documents -> Refinement</td>
+            </tr>
+            <tr>
+              <td><strong style="color: var(--text-primary);">C. Gemini's structure</strong></td>
+              <td>Foundation -> Engine -> Dual-Mode -> Integration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 6: RISK REGISTER ===== -->
+  <section class="section" id="risks">
+    <div class="section-header">
+      <span class="section-number">06</span>
+      <h2>Risk Register</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Google OAuth verification delays</td>
+            <td><span class="severity-high">High</span></td>
+            <td>Start verification process immediately, progressive scopes</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>DOCX/PPTX generation quality</td>
+            <td><span class="severity-high">High</span></td>
+            <td>Use proven Go libraries (unioffice), invest in templates</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Context window overflow</td>
+            <td><span class="severity-high">High</span></td>
+            <td>.gkestralignore, token-aware chunking, observation masking</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Vision too broad for v0.1</td>
+            <td><span class="severity-medium">Medium</span></td>
+            <td>Lock first wedge user, build for that persona first</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>UI identity crisis (office vs terminal)</td>
+            <td><span class="severity-medium">Medium</span></td>
+            <td>Clear visual partition between modes</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Approval fatigue (too many confirmations)</td>
+            <td><span class="severity-medium">Medium</span></td>
+            <td>Tiered: low-risk auto-proceed, high-risk requires confirm</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Subscription tier mechanics undefined</td>
+            <td><span class="severity-medium">Medium</span></td>
+            <td>Defer gating to v0.2, build tracking in v0.1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 7: CONSENSUS ===== -->
+  <section class="section" id="consensus">
+    <div class="section-header">
+      <span class="section-number">07</span>
+      <h2>What All Three Models Agree On</h2>
+      <span class="settled-tag">Bedrock</span>
+    </div>
+
+    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+      This is the bedrock. No dissent on any of these:
+    </p>
+
+    <ol class="consensus-list">
+      <li><strong>The roadmap must be rewritten.</strong> Current phases are for a different product.</li>
+      <li><strong>Google services are day-one.</strong> Not v0.2. Not nice-to-have.</li>
+      <li><strong>DOCX/PPTX generation is the product demo.</strong> Not markdown. Not code diffs.</li>
+      <li><strong>Code is kept but invisible.</strong> It runs behind the scenes. User never sees it unless they choose to.</li>
+      <li><strong>Two-pane UI is correct.</strong> Chat left, artifacts right.</li>
+      <li><strong>MCP is deferred.</strong> Go-native brokers for Drive/Gmail in v0.1.</li>
+      <li><strong>Maps deferred to v0.2.</strong></li>
+      <li><strong>Local-first.</strong> Sessions persist as folders on the user's machine.</li>
+      <li><strong>Human-in-the-loop.</strong> User approves file writes, email sends, code execution.</li>
+      <li><strong>Single binary, no runtime dependencies.</strong></li>
+    </ol>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  Generated by <strong>MasterMindMandan</strong> with input from <strong>Codex GPT-5.4</strong> and <strong>Gemini 3.1 Pro</strong> (Aletheia GVR, 7-pass).<br>
+  2026-03-23 | Status: <strong>DRAFT</strong> -- awaiting Commander decisions on 4 open items.
+</footer>
+
+</body>
+</html>

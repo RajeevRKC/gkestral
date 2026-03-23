@@ -1,12 +1,23 @@
 ---
 project: Gkestral
 current_milestone: v0.1.0
-current_phase: 01
+current_phase: 1
 status: planning
-last_updated: 2026-03-22
+last_updated: "2026-03-23T17:39:53.907Z"
+current_plan: 1
+plan_status: ready
+state_version: 3
+current_git_hash: 69e7b2f
+decisions: 6
+last_decision: "2026-03-23T17:40:03.539Z"
 ---
 
-# Gkestral State
+## Position
+
+- **Phase:** 1
+- **Plan:** 01
+- **Status:** ready
+- **Stage:** PLAN
 
 ## Current Position
 
@@ -54,3 +65,46 @@ last_updated: 2026-03-22
 6. **Observation masking**: JetBrains research shows 50%+ cost reduction with equivalent solve rates.
 7. **Compression**: Factory.ai's anchored iterative summarisation beats LLM summarisation.
 8. **Self-improvement**: SICA (ICLR 2025) achieved 17% -> 53% on SWE-bench via self-editing scaffolding.
+
+## Decision Log
+
+### 2026-03-23T17:40:03.539Z
+
+**Decision:** AR-1 handshake complete: Gemini APPROVED WITH WARNINGS (r1), Codex APPROVED (r3). 3/5 rounds used. Key fixes: structured output added, CacheManager API pattern, retry integrated into client, wave dependencies corrected.
+
+**Rationale:** 
+
+
+### 2026-03-23T17:15:59.837Z
+
+**Decision:** Roadmap replaced: 13-phase coding-CLI -> 4-phase Commander-directed structure
+
+**Rationale:** 
+
+
+### 2026-03-23T17:15:59.757Z
+
+**Decision:** Phase structure: Gemini Mastery -> Google APIs -> Architecture -> Working Surface
+
+**Rationale:** 
+
+
+### 2026-03-23T17:15:59.670Z
+
+**Decision:** Hero demo: PDF drop + research + DOCX output
+
+**Rationale:** 
+
+
+### 2026-03-23T17:15:59.591Z
+
+**Decision:** UI mode: Single surface, code hidden unless asked
+
+**Rationale:** 
+
+
+### 2026-03-23T17:15:51.382Z
+
+**Decision:** Wedge user: Technical founder (dogfood first)
+
+**Rationale:** 

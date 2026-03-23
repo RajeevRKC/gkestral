@@ -1,150 +1,137 @@
 ---
 project: Gkestral
-milestone: v0.1.0 -- v1.0.0
+milestone: v0.1.0
 created: 2026-03-22
+updated: 2026-03-23
+structure: Commander-directed (REQUIREMENTS.md Section 4)
 ---
 
 # Gkestral Roadmap
 
-## Milestone 1: v0.1.0 -- The Foundation (Current)
+> "Understanding Gemini models, Google APIs -- in depth -- and strategy to go
+> beyond existing tools in harnessing Gemini to perfection." -- Commander
 
-> Single Go binary, working Wails app, real Gemini streaming, core tools, two-pane UI.
+## Milestone 1: v0.1.0 -- The Sharp Core
 
-### Phase 01: Gemini Intelligence Core
-**Focus:** Get the Gemini API integration RIGHT. Context caching, streaming, thinking, thought signatures, model routing. This is the entire product -- everything else is plumbing.
+> Gemini-native desktop workbench. Information in, finished work out.
+> Hero demo: Drop PDF, research, produce grounded DOCX output.
 
-- [ ] Gemini REST client with SSE streaming (handle partial chunks, reconnect)
-- [ ] Thought signature handling (mandatory for Gemini 3.x)
-- [ ] Thinking mode with configurable budget/level per model family
-- [ ] Context caching: stable/active split strategy with TTL management
-- [ ] Model routing: Flash Lite (scan) -> Flash (code) -> Pro (architecture)
-- [ ] Token counting and budget management
-- [ ] Safety settings optimised for coding (no false blocks)
-- [ ] System prompt engineering optimised for Gemini's behaviour
-- [ ] Parallel function calling with id-based response matching
-- [ ] Error handling: 429 retry, model fallback, stream recovery
+### Phase 01: Gemini Mastery
 
-### Phase 02: Tool Architecture
-**Focus:** Build tools that maximise Gemini's agentic performance. Fuzzy editing, smart search, context-aware file reading.
+**Goal:** Know the engine deeper than anyone. This is the competitive moat.
 
-- [ ] read_file with line ranges and token estimation
-- [ ] write_file with diff confirmation
-- [ ] edit with cascade: exact -> flexible -> fuzzy (Levenshtein) -> LLM-assisted
-- [ ] list_dir with .gitignore/.gkestralignore respect
-- [ ] search (ripgrep with fallback)
-- [ ] run_command with approval flow
-- [ ] git_status / git_diff
-- [ ] think (force Deep Think mode for a query)
-- [ ] Tool result compression (intelligent, not blunt truncation)
-- [ ] Tool metrics collection (call count, success rate, duration)
+**Target Models (current generation only):**
+- `gemini-3.1-pro-preview` -- deep reasoning, architecture, research synthesis
+- `gemini-3.1-flash` -- fast coding, information extraction, high-volume tasks
+- `gemini-3.1-flash-image-preview` (NanoBanana Pro) -- image generation
+- `gemini-2.5-pro` / `gemini-2.5-flash` -- production stable, context caching
 
-### Phase 03: Wails Desktop App
-**Focus:** Package the Path 3 UI in a proper Wails application. Cross-platform build.
+**Deep-dive areas:**
+- [ ] Streaming (SSE) -- partial chunks, reconnection, backpressure
+- [ ] Thought signatures -- mandatory circulation in 3.x, budget/level control
+- [ ] Context caching -- stable/active split, TTL, economics (90% discount), minimum token thresholds
+- [ ] Search Grounding -- native API tool, grounding metadata, citation extraction
+- [ ] Code Execution -- built-in Python sandbox, when to use vs local execution
+- [ ] Multimodal input -- image/PDF/audio ingestion, token costs per modality
+- [ ] Function calling -- parallel calls, id-based matching, tool declaration patterns
+- [ ] System instruction optimisation -- what Gemini responds to vs ignores
+- [ ] Temperature/safety -- 1.0 mandatory for 3.x (lower causes looping), safety setting tuning
+- [ ] Token economics -- input/output pricing per model, caching discount tiers
+- [ ] Model routing strategy -- when to use Pro vs Flash vs Flash Lite vs NanoBanana
+- [ ] Error patterns -- 429 retry, model fallback chains, stream recovery
+- [ ] Observation masking -- JetBrains research: 50%+ cost reduction, same solve rate
 
-- [ ] Wails v2 project scaffold (Go backend + web frontend)
-- [ ] Terminal-inspired conversation pane (custom renderer, not xterm.js)
-- [ ] Canvas pane: code viewer with syntax highlighting
-- [ ] Canvas pane: diff viewer (side-by-side)
-- [ ] Canvas pane: markdown renderer
-- [ ] Canvas pane: think trace viewer (collapsible tree)
-- [ ] WebSocket bridge between Go agent and frontend
-- [ ] Resizable panes, tab system, status bar
-- [ ] Cross-platform build: Windows (WebView2), Ubuntu (WebKitGTK), macOS (WebKit)
-- [ ] Streaming text display with batched rendering (no flicker)
-- [ ] Input with command history, Esc to cancel
-
-### Phase 04: Context Management
-**Focus:** Maximise Gemini's 1M context window efficiently. KESTRAL.md discovery, observation masking, smart context loading.
-
-- [ ] KESTRAL.md hierarchical discovery (global -> project -> subdirectory)
-- [ ] JIT context loading: lazy-load subdirectory context on tool access
-- [ ] Observation masking: keep last N turns verbatim, mask older tool outputs
-- [ ] .gkestralignore file parsing (gitignore syntax)
-- [ ] Conversation history with curated view (strip invalid responses)
-- [ ] Token budget visualisation in canvas pane
-- [ ] Context cache status display (cached tokens, TTL, cost savings)
+**Output:** Deep reference document + Go client library that exploits every capability.
 
 ---
 
-## Milestone 2: v0.2.0 -- The Differentiator
+### Phase 02: Google API & SDK Landscape
 
-> Multimodal canvas, Google Search grounding, session persistence, eval suite.
+**Goal:** Map the full Google API surface for information access. Understand what
+a single OAuth token can unlock, what costs what, and how to build progressive
+permissioning.
 
-### Phase 05: Multimodal Canvas
-- [ ] Image viewer (Gemini Imagen output rendering)
-- [ ] Map renderer (MapLibre GL for GIS coordinates)
-- [ ] Mermaid diagram rendering
-- [ ] Google Search grounding results as research cards
-- [ ] Stitch AI output preview (HTML/CSS rendering)
-- [ ] Screenshot input (paste image -> Gemini analyses)
+**API deep-dive areas:**
+- [ ] Google OAuth 2.0 -- desktop app flow, progressive scopes, token refresh
+- [ ] Drive API v3 -- file browse/open/save, folder structure, permissions
+- [ ] Gmail API -- read messages, search, import as context, draft creation
+- [ ] Google Search (via Gemini Grounding) -- how it works, metadata, citations
+- [ ] Google AI SDK (`google-genai` for Go) -- vs raw REST, trade-offs
+- [ ] Vertex AI -- when needed vs direct Gemini API, pricing differences
+- [ ] Rate limits and quotas per API, per tier (free vs paid Google account)
+- [ ] Scope economics -- minimal scopes for v0.1, expansion path for v0.2+
 
-### Phase 06: Google Search Grounding + Dual Agent
-- [ ] Planner agent (Search grounding enabled) for research
-- [ ] Actor agent (function calling) for code modification
-- [ ] Agent routing: detect research vs coding intent
-- [ ] Search grounding metadata display in canvas
-- [ ] URL context tool for documentation fetching
-- [ ] Source attribution in research cards
+**Skills, Agents & Prompt Engineering:**
+- [ ] MCP protocol -- what it offers, when to use vs native Go brokers
+- [ ] Agent patterns -- planner/executor, research/action split
+- [ ] Prompt engineering for Gemini specifically -- what works, what doesn't
+- [ ] System prompt structure -- role, constraints, output format, tool guidance
+- [ ] Few-shot vs zero-shot performance on Gemini 3.x models
+- [ ] Structured output (JSON mode) -- reliability, schema enforcement
+- [ ] Chain-of-thought vs direct answering -- when each is optimal
+- [ ] Grounding + function calling combination (3.x VALIDATED mode)
 
-### Phase 07: Session Persistence & Memory
-- [ ] SQLite session storage (modernc.org/sqlite, zero CGO)
-- [ ] Session resume (`gkestral resume` command)
-- [ ] Session-end reflection (Reflexion pattern: what worked, what didn't)
-- [ ] Project memory extraction (patterns discovered, saved to KESTRAL.md)
-- [ ] Three-tier memory: session (ephemeral) -> project (persistent) -> global (cross-project)
-
-### Phase 08: Eval Suite & Benchmarking
-- [ ] Eval framework in Go (EvalCase struct: setup, prompt, assert, budget)
-- [ ] 10 benchmark cases: read/explain, find-bug, add-feature, refactor, multi-file
-- [ ] `gkestral bench` command (cold start, binary size, token efficiency, solve rate)
-- [ ] Regression detection: track zero-regression rate
-- [ ] Metric dashboard in canvas pane
-- [ ] Comparison mode: benchmark against previous versions
+**Output:** API strategy document + OAuth prototype + prompt engineering playbook.
 
 ---
 
-## Milestone 3: v0.3.0 -- Self-Improvement
+### Phase 03: Architecture from Intelligence
 
-> Autoresearch loop, prompt self-tuning, skill library, MCP client.
+**Goal:** Design the architecture AFTER we understand the engine. Not before.
+Every design decision grounded in Phase 01-02 findings.
 
-### Phase 09: MCP Client
-- [ ] MCP client (stdio + HTTP transports)
-- [ ] Tool discovery from MCP servers
-- [ ] MCP tool execution with permission checks
-- [ ] Configuration via KESTRAL.md or config file
+- [ ] System architecture informed by Gemini capability map
+- [ ] Wails v2 scaffold with two-pane UI (leveraging existing POC)
+- [ ] Go backend structure: engine, tools, services, workspace
+- [ ] Context management strategy (based on caching findings)
+- [ ] Model routing implementation (based on model comparison findings)
+- [ ] Google service integration layer (based on API findings)
+- [ ] Session persistence and workspace model
+- [ ] Tool architecture (file ops, search, command execution -- invisible)
 
-### Phase 10: Autoresearch & Self-Improvement
-- [ ] Tool call pattern analysis (identify bottlenecks, failures)
-- [ ] Hypothesis generation (via Gemini: "how to improve tool X")
-- [ ] Auto-improvement loop: modify tool -> eval -> accept/reject
-- [ ] OPRO-style system prompt self-tuning
-- [ ] Skill library: reusable tool call patterns from successful sessions
-- [ ] Improvement archive (SICA pattern: store every iteration with metrics)
-
-### Phase 11: Permission & Security
-- [ ] Policy engine with TOML rules (system/user/workspace levels)
-- [ ] Path validation (prevent operations outside workspace)
-- [ ] Shell command approval with "always allow" patterns
-- [ ] Sandbox exploration: Windows AppContainer, Linux seccomp
-- [ ] Destructive operation detection and confirmation
+**Output:** Working architecture with Gemini streaming, OAuth, and session persistence.
 
 ---
 
-## Milestone 4: v1.0.0 -- Ship Grade
+### Phase 04: First Working Surface
 
-> Distribution, documentation, community, Google showcase readiness.
+**Goal:** The v0.1 that proves the thesis. Information in, finished work out.
 
-### Phase 12: Distribution & Polish
-- [ ] Signed binary distribution (Homebrew, Winget, apt/yum)
-- [ ] GitHub Releases with cross-platform builds
-- [ ] Documentation site
-- [ ] Getting started guide
-- [ ] Configuration reference
-- [ ] Contributing guide
+- [ ] Information ingestion -- PDF, web pages, Drive files, Gmail, local files
+- [ ] Research cards with citations in right pane
+- [ ] Document generation -- real DOCX to local workspace
+- [ ] Presentation generation -- real PPTX to local workspace
+- [ ] Artifact preview in right pane
+- [ ] Human-in-the-loop approval before file writes
+- [ ] The hero demo works end-to-end
 
-### Phase 13: Community & Showcase
-- [ ] Open-source release (Apache 2.0)
-- [ ] Benchmark comparison page (vs Gemini CLI, Aider, Claude Code)
-- [ ] Demo videos / GIFs
-- [ ] Google DevRel outreach materials
-- [ ] Blog post: "Building a Gemini-native CLI in Go"
+**Output:** Shippable v0.1 binary that a non-developer can use to produce real work.
+
+---
+
+## Milestone 2: v0.2.0 -- Workspace Expansion (Future)
+
+> Richer multimodal artifact handling, diagram and image pipelines, better memory
+> and project context discovery, stronger task planning, first Google ecosystem bridges.
+
+Phases TBD after v0.1 is proven.
+
+## Milestone 3: v0.5.0 -- Adaptive Intelligence (Future)
+
+> Tool metrics, eval suite, reflection loops, prompt tuning based on measured outcomes.
+
+## Milestone 4: v1.0.0 -- Gemini-Native Category Leader (Future)
+
+> Polished multimodal workspace, stable Google ecosystem integrations,
+> benchmarkable gains over default Gemini tooling, open-source community-ready release.
+
+---
+
+## Decisions (Settled)
+
+| # | Decision | Resolution | Date |
+|---|----------|------------|------|
+| 1 | First wedge user | Technical founder (dogfood first) | 2026-03-23 |
+| 2 | UI mode | Single surface, code hidden unless asked | 2026-03-23 |
+| 3 | Hero demo | PDF drop + research + DOCX output | 2026-03-23 |
+| 4 | Phase structure | Commander-directed: Mastery -> APIs -> Architecture -> Surface | 2026-03-23 |
