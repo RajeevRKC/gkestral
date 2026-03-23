@@ -1,14 +1,15 @@
-# Gkestral -- Gemini-Native Agentic CLI
+# Gkestral -- Gemini-Native Desktop Workbench
 
-> Lean Go binary. Two-pane Wails app. Maximise Gemini's unique capabilities.
+> Gemini-native desktop workbench for turning scattered information into
+> finished documents, presentations, and research-backed outputs.
 > Tier: T1 (ship-grade, targeting Google showcase)
 
 ## Quick Context
 
-- **Language:** Go 1.23+
-- **UI:** Wails v2 (native webview, not Electron)
+- **Language:** Go 1.23+ (currently 1.25.6)
+- **UI:** Wails v2 (native webview, not Electron) -- Phase 03
 - **API:** Raw REST + SSE (no Gemini SDK dependency)
-- **Default model:** gemini-2.5-flash (routing to Pro/Flash Lite by task)
+- **Default model:** gemini-2.5-flash (routing to Pro/Flash by task)
 - **Architecture:** Architect & Surgeon -- 1M input, iterative 8K output
 
 ## Key Design Principles
@@ -24,7 +25,27 @@
 ## FABRICATE
 
 Project files: `.fabricate/PROJECT.md`, `ROADMAP.md`, `STATE.md`
-Current: Milestone 1 (v0.1.0), Phase 01 (Gemini Intelligence Core)
+Current: Milestone 1 (v0.1.0), Phase 01 -- Gemini Mastery (EXECUTING)
+Plan: `.fabricate/phases/01-gemini-mastery/01-01-PLAN.md` (16 tasks, 8 waves)
+Progress: Waves 1-3 done (5/16 tasks). Next: T5 (SSE streaming parser)
+Handoff: `.fabricate/phases/01-gemini-mastery/HANDOFF-2026-03-23.md`
+
+## Project Structure
+
+```
+go.mod                          -- Module: gkestral
+internal/gemini/                -- Gemini client library (Phase 01 deliverable)
+  types.go                      -- All API types and structures
+  models.go                     -- Model registry with pricing
+  retry.go                      -- Retry engine with exponential backoff
+  client.go                     -- HTTP client with retry integration
+  *_test.go                     -- 29 tests, 79.9% coverage
+output/kestrel/                 -- POC prototype (reference, migrates to Wails in Phase 03)
+website/                        -- Marketing site (gkestral.com)
+.fabricate/                     -- FABRICATE project management
+  references/study/             -- Source code studies (Gemini CLI, OpenCode, Entropic)
+docs/                           -- (Phase 01 will create gemini-mastery-reference.md)
+```
 
 ## References
 
@@ -32,15 +53,23 @@ Research documents in `.fabricate/references/`:
 - `gemini-api-deepdive.md` -- 12-area API capability study
 - `autoresearch-patterns.md` -- Self-improvement architecture
 - `gemini-cli-source-study.md` -- Official CLI codebase analysis
+- `study/CONSOLIDATED-FINDINGS.md` -- Adopt/avoid/build matrix from 3 source studies
 
 ## Commands
 
 ```bash
 # Development
-wails dev                    # Hot reload development
-wails build                  # Production build
-go test ./...                # Run tests
+go test ./internal/gemini/           # Run unit tests
+go test -cover ./internal/gemini/    # Coverage report
+go test -v ./internal/gemini/        # Verbose output
+go vet ./...                         # Static analysis
 
-# From POC (output/kestrel/)
-go run .                     # Run POC prototype
+# POC (output/kestrel/)
+cd output/kestrel && go run .        # Run POC prototype
+
+# Note: -race flag requires CGO (disabled on this Windows install)
 ```
+
+## Windows Note
+
+CGO is disabled. The `-race` flag will not work. Race detection needs CI with CGO enabled.
