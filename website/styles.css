@@ -174,19 +174,26 @@ main {
 }
 
 .hero h1 {
-  max-width: 8.8ch;
-  font-size: clamp(3.8rem, 8vw, 7rem);
+  max-width: 14ch;
+  font-size: clamp(3.4rem, 7vw, 5.8rem);
 }
 
-.hero h1 span {
-  color: #d9ddd8;
+.hero-tagline {
+  margin: 20px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  max-width: 20ch;
 }
 
 .hero-subhead {
-  max-width: 28ch;
+  max-width: 32ch;
   margin: 24px 0 0;
   color: #d6dfdc;
-  font-size: 1.18rem;
+  font-size: 1.08rem;
 }
 
 .hero-actions {
