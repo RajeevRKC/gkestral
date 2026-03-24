@@ -27,7 +27,7 @@
 Project files: `.fabricate/PROJECT.md`, `ROADMAP.md`, `STATE.md`
 Current: Milestone 1 (v0.1.0), Phase 01 -- Gemini Mastery (EXECUTING)
 Plan: `.fabricate/phases/01-gemini-mastery/01-01-PLAN.md` (16 tasks, 8 waves)
-Progress: Waves 1-3 done (5/16 tasks). Next: T5 (SSE streaming parser)
+Progress: Waves 1-5 done (13/16 tasks). Next: T11 (search grounding, Wave 6)
 Handoff: `.fabricate/phases/01-gemini-mastery/HANDOFF-2026-03-23.md`
 
 ## Project Structure
@@ -39,7 +39,15 @@ internal/gemini/                -- Gemini client library (Phase 01 deliverable)
   models.go                     -- Model registry with pricing
   retry.go                      -- Retry engine with exponential backoff
   client.go                     -- HTTP client with retry integration
-  *_test.go                     -- 29 tests, 79.9% coverage
+  streaming.go                  -- SSE streaming parser
+  thought.go                    -- Thought signature handling (3.x)
+  safety.go                     -- Safety settings management
+  structured.go                 -- Structured output (JSON Schema)
+  cache.go                      -- Context caching (CachedContents REST)
+  tools.go                      -- Function calling with parallel dispatch
+  router.go                     -- Model router with task classification
+  system.go                     -- System prompt engineering
+  *_test.go                     -- 87.1% coverage
 output/kestrel/                 -- POC prototype (reference, migrates to Wails in Phase 03)
 website/                        -- Marketing site (gkestral.com)
 .fabricate/                     -- FABRICATE project management
