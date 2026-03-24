@@ -152,11 +152,56 @@ func SearchQueriesFromMetadata(gm *GroundingMetadata) []string {
 // EnableSearchWithFunctionCalling configures a request for the Gemini 3.x
 // combination of search grounding and function calling. This requires:
 // 1. google_search tool with DynamicRetrievalConfig mode=VALIDATED
-// 2. Function declarations in a separate Tool entry
+// 2. Function declarations in a SEPARATE Tool entry (not merged with search)
 // 3. The model must be a 3.x variant
 //
-// The function sets up the search tool; callers must also add function
-// declarations separately via ApplyTools.
+// This function ensures the search tool is always in its own Tool entry,
+// separate from any function declarations. It also ensures search and
+// function tools cannot be merged regardless of call order.
 func EnableSearchWithFunctionCalling(request *GenerateContentRequest, dynamicThreshold *float64) {
-	EnableSearchGroundingValidated(request, dynamicThreshold)
+	// Ensure google_search is in a dedicated Tool entry (no function declarations).
+	gs := &GoogleSearch{
+		DynamicRetrievalConfig: &DynamicRetrievalConfig{
+			Mode: "VALIDATED",
+		},
+	}
+	if dynamicThreshold != nil {
+		gs.DynamicRetrievalConfig.DynamicThreshold = dynamicThreshold
+	}
+
+	// Remove any existing google_search from other tool entries to prevent merging.
+	for i := range request.Tools {
+		if request.Tools[i].GoogleSearch != nil {
+			request.Tools[i].GoogleSearch = nil
+		}
+	}
+
+	// Add google_search as its own dedicated tool entry.
+	request.Tools = append(request.Tools, Tool{GoogleSearch: gs})
+}
+
+// SeparateSearchAndFunctionTools ensures google_search and function declarations
+// are in separate Tool entries. Call this before sending the request if tools
+// were added in an unknown order.
+func SeparateSearchAndFunctionTools(request *GenerateContentRequest) {
+	var searchTool *GoogleSearch
+	var cleanTools []Tool
+
+	for _, t := range request.Tools {
+		if t.GoogleSearch != nil && len(t.FunctionDeclarations) > 0 {
+			// Split merged entry.
+			searchTool = t.GoogleSearch
+			cleanTools = append(cleanTools, Tool{FunctionDeclarations: t.FunctionDeclarations})
+		} else if t.GoogleSearch != nil {
+			searchTool = t.GoogleSearch
+		} else if len(t.FunctionDeclarations) > 0 {
+			cleanTools = append(cleanTools, t)
+		}
+	}
+
+	if searchTool != nil {
+		cleanTools = append(cleanTools, Tool{GoogleSearch: searchTool})
+	}
+
+	request.Tools = cleanTools
 }
