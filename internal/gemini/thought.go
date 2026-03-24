@@ -22,10 +22,11 @@ func ExtractThoughtParts(resp *GenerateContentResponse) []ThoughtPart {
 
 	var thoughts []ThoughtPart
 	for _, part := range content.Parts {
-		if part.Thought && part.Text != "" {
+		if part.Thought || part.ThoughtSignature != "" {
 			thoughts = append(thoughts, ThoughtPart{
-				Text:    part.Text,
-				Thought: true,
+				Text:             part.Text,
+				Thought:          part.Thought,
+				ThoughtSignature: part.ThoughtSignature,
 			})
 		}
 	}

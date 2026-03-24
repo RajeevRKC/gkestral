@@ -296,6 +296,7 @@ type Segment struct {
 	StartIndex int    `json:"startIndex"`
 	EndIndex   int    `json:"endIndex"`
 	Text       string `json:"text"`
+	PartIndex  int    `json:"partIndex,omitempty"`
 }
 
 // Citation represents a structured citation extracted from grounding metadata.
@@ -324,7 +325,8 @@ type CachedContentRequest struct {
 	SystemInstruction *Message              `json:"systemInstruction,omitempty"`
 	Tools             []Tool                `json:"tools,omitempty"`
 	DisplayName       string                `json:"displayName,omitempty"`
-	TTL               string                `json:"ttl,omitempty"` // e.g., "3600s"
+	TTL               string                `json:"ttl,omitempty"`        // e.g., "3600s" (union: use TTL or ExpireTime)
+	ExpireTime        string                `json:"expireTime,omitempty"` // RFC3339 timestamp (union: use TTL or ExpireTime)
 }
 
 // CachedContentResponse is the response from the cached content endpoints.

@@ -49,7 +49,7 @@ func TestGetModel_Capabilities(t *testing.T) {
 			wantGrounding:     true,
 			wantCaching:       true,
 			wantMinCache:      4096,
-			wantContextWindow: 1_000_000,
+			wantContextWindow: 1_048_576,
 		},
 		{
 			modelID:           "gemini-3.1-flash",
@@ -57,7 +57,7 @@ func TestGetModel_Capabilities(t *testing.T) {
 			wantGrounding:     true,
 			wantCaching:       true,
 			wantMinCache:      1024,
-			wantContextWindow: 1_000_000,
+			wantContextWindow: 1_048_576,
 		},
 		{
 			modelID:           "gemini-3.1-flash-image-preview",
@@ -65,7 +65,7 @@ func TestGetModel_Capabilities(t *testing.T) {
 			wantGrounding:     false,
 			wantCaching:       false,
 			wantMinCache:      0,
-			wantContextWindow: 1_000_000,
+			wantContextWindow: 1_048_576,
 		},
 	}
 

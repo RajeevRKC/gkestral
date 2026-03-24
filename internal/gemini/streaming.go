@@ -153,7 +153,7 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 		case "STOP":
 			sendEvent(ctx, events, ProviderEvent{Type: EventDone, Usage: lastUsage})
 			return
-		case "MAX_TOKENS", "RECITATION":
+		case "MAX_TOKENS", "RECITATION", "OTHER", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII":
 			sendEvent(ctx, events, ProviderEvent{Type: EventDone, Usage: lastUsage, Text: candidate.FinishReason})
 			return
 		}

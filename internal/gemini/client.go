@@ -124,16 +124,10 @@ func (c *Client) buildRequest(ctx context.Context, method, url string, body any)
 func (c *Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
 	if c.retryConfig != nil {
 		return ExecuteWithRetry(ctx, *c.retryConfig, func(ctx context.Context) (*http.Response, error) {
-			// Clone request for retry (body needs to be re-readable).
+			// Clone request for retry. req.GetBody is auto-populated by
+			// http.NewRequestWithContext when body is a *bytes.Reader,
+			// so Clone() safely duplicates the body without manual io.ReadAll.
 			clonedReq := req.Clone(ctx)
-			if req.Body != nil {
-				body, err := io.ReadAll(req.Body)
-				if err != nil {
-					return nil, fmt.Errorf("failed to read request body for retry: %w", err)
-				}
-				req.Body = io.NopCloser(bytes.NewReader(body))
-				clonedReq.Body = io.NopCloser(bytes.NewReader(body))
-			}
 			return c.executeAndCheck(clonedReq)
 		})
 	}
