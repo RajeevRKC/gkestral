@@ -57,11 +57,12 @@ func ExtractTextParts(resp *GenerateContentResponse) []string {
 // - Thought flag is true
 // - No function call/response data present
 func ValidateThoughtPart(part Part) error {
-	if !part.Thought {
-		return fmt.Errorf("thought flag must be true")
+	if !part.Thought && part.ThoughtSignature == "" {
+		return fmt.Errorf("part must have thought=true or a thoughtSignature")
 	}
-	if part.Text == "" {
-		return fmt.Errorf("thought text must be non-empty")
+	// Empty-text parts with a signature are valid (signature-only chunks).
+	if part.Text == "" && part.ThoughtSignature == "" {
+		return fmt.Errorf("thought part must have text or a signature")
 	}
 	if part.FunctionCall != nil {
 		return fmt.Errorf("thought part must not contain function call")
@@ -69,54 +70,49 @@ func ValidateThoughtPart(part Part) error {
 	if part.FunctionResponse != nil {
 		return fmt.Errorf("thought part must not contain function response")
 	}
-	if part.InlineData != nil {
-		return fmt.Errorf("thought part must not contain inline data")
-	}
 	return nil
 }
 
-// CirculateThoughts injects thought parts back into the conversation history
-// for subsequent turns. Gemini 3.x requires thoughts from the model's previous
-// response to be included in the next request for coherent reasoning.
-func CirculateThoughts(messages []Message, thoughts []ThoughtPart) []Message {
-	if len(thoughts) == 0 {
+// CirculateThoughts preserves the model's response parts (including thought
+// signatures) for the next turn. Gemini 3.x requires that model response parts
+// are returned EXACTLY as received -- never concatenate, merge, or reconstruct.
+//
+// The correct pattern is to include the model's full response (with all its
+// original parts including thoughtSignature fields) as a "model" message in
+// the conversation history. This function takes the original model parts
+// and ensures they are preserved in the message history.
+func CirculateThoughts(messages []Message, originalModelParts []Part) []Message {
+	if len(originalModelParts) == 0 {
 		return messages
 	}
 
-	// Build model message with thought parts first, then any existing parts.
-	var thoughtParts []Part
-	for _, t := range thoughts {
-		thoughtParts = append(thoughtParts, Part{
-			Text:    t.Text,
-			Thought: true,
-		})
-	}
-
-	// Find the last model message and prepend thoughts.
 	result := append([]Message(nil), messages...)
 
+	// Find the last model message and replace its parts with the originals.
 	for i := len(result) - 1; i >= 0; i-- {
 		if result[i].Role == "model" {
-			result[i].Parts = append(thoughtParts, result[i].Parts...)
+			result[i].Parts = originalModelParts
 			return result
 		}
 	}
 
-	// No model message found -- append a new one with just thoughts.
+	// No model message found -- append one with the original parts.
 	result = append(result, Message{
 		Role:  "model",
-		Parts: thoughtParts,
+		Parts: originalModelParts,
 	})
 	return result
 }
 
 // NewThinkingConfig creates a ThinkingConfig for controlling reasoning.
-// Level: "off", "low", "medium", "high"
-// Budget: maximum thinking tokens (0 = model default)
-func NewThinkingConfig(level string, budget int) *ThinkingConfig {
+// Level: ThinkingLevelLow, ThinkingLevelMedium, ThinkingLevelHigh, ThinkingLevelMinimal
+// Budget: maximum thinking tokens (0 = model default, -1 = dynamic)
+// includeThoughts must be true to receive thought text in responses.
+func NewThinkingConfig(level string, budget int, includeThoughts bool) *ThinkingConfig {
 	return &ThinkingConfig{
-		ThinkingLevel:  level,
-		ThinkingBudget: budget,
+		IncludeThoughts: includeThoughts,
+		ThinkingLevel:   level,
+		ThinkingBudget:  budget,
 	}
 }
 

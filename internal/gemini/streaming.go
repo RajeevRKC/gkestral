@@ -172,13 +172,27 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 // partToEvent converts a Gemini response Part to a ProviderEvent.
 // Returns nil if the part doesn't map to a meaningful event.
 func partToEvent(part Part) *ProviderEvent {
-	// Thought parts (Gemini 3.x): has thought=true flag.
-	if part.Thought && part.Text != "" {
+	// Thought parts (Gemini 3.x): has thought=true flag OR thoughtSignature.
+	// Empty-text parts carrying only a signature are valid and must be preserved.
+	if part.Thought || part.ThoughtSignature != "" {
 		return &ProviderEvent{
 			Type: EventThoughtSignature,
 			Thought: &ThoughtPart{
-				Text:    part.Text,
-				Thought: true,
+				Text:             part.Text,
+				Thought:          part.Thought,
+				ThoughtSignature: part.ThoughtSignature,
+			},
+		}
+	}
+
+	// Function call (may also carry a thoughtSignature on Gemini 3.x).
+	if part.FunctionCall != nil {
+		return &ProviderEvent{
+			Type: EventToolCall,
+			ToolCall: &ToolCallData{
+				ID:           part.FunctionCall.ID,
+				FunctionName: part.FunctionCall.Name,
+				Arguments:    part.FunctionCall.Args,
 			},
 		}
 	}
@@ -188,18 +202,6 @@ func partToEvent(part Part) *ProviderEvent {
 		return &ProviderEvent{
 			Type: EventText,
 			Text: part.Text,
-		}
-	}
-
-	// Function call.
-	if part.FunctionCall != nil {
-		return &ProviderEvent{
-			Type: EventToolCall,
-			ToolCall: &ToolCallData{
-				ID:           part.FunctionCall.ID,
-				FunctionName: part.FunctionCall.Name,
-				Arguments:    part.FunctionCall.Args,
-			},
 		}
 	}
 

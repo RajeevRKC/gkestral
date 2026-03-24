@@ -161,6 +161,9 @@ func (c *Client) executeAndCheck(req *http.Request) (*http.Response, error) {
 
 // GenerateContent sends a synchronous (non-streaming) request to the Gemini API.
 func (c *Client) GenerateContent(ctx context.Context, model string, request *GenerateContentRequest) (*GenerateContentResponse, error) {
+	if request == nil {
+		return nil, fmt.Errorf("request must not be nil")
+	}
 	if model == "" {
 		model = c.defaultModel
 	}
@@ -230,6 +233,9 @@ func (c *Client) StreamEndpoint(model string) string {
 // buildStreamRequest creates a request for SSE streaming.
 // The actual streaming parser is in streaming.go.
 func (c *Client) buildStreamRequest(ctx context.Context, model string, request *GenerateContentRequest) (*http.Request, error) {
+	if request == nil {
+		return nil, fmt.Errorf("request must not be nil")
+	}
 	if model == "" {
 		model = c.defaultModel
 	}

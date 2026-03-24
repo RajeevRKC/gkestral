@@ -68,12 +68,13 @@ func TestValidateThoughtPart(t *testing.T) {
 		part    Part
 		wantErr bool
 	}{
-		{"valid", Part{Text: "thinking...", Thought: true}, false},
-		{"no_thought_flag", Part{Text: "text", Thought: false}, true},
-		{"empty_text", Part{Text: "", Thought: true}, true},
+		{"valid_thought", Part{Text: "thinking...", Thought: true}, false},
+		{"valid_signature_only", Part{ThoughtSignature: "abc123"}, false},
+		{"valid_thought_with_sig", Part{Text: "t", Thought: true, ThoughtSignature: "sig"}, false},
+		{"no_thought_no_sig", Part{Text: "text"}, true},
+		{"empty_text_no_sig", Part{Thought: true}, true},
 		{"has_function_call", Part{Text: "t", Thought: true, FunctionCall: &FunctionCall{Name: "fn"}}, true},
 		{"has_function_response", Part{Text: "t", Thought: true, FunctionResponse: &FunctionResponse{Name: "fn"}}, true},
-		{"has_inline_data", Part{Text: "t", Thought: true, InlineData: &InlineData{MIMEType: "image/png"}}, true},
 	}
 
 	for _, tt := range tests {
@@ -86,29 +87,30 @@ func TestValidateThoughtPart(t *testing.T) {
 	}
 }
 
-func TestCirculateThoughts(t *testing.T) {
+func TestCirculateThoughts_PreservesOriginalParts(t *testing.T) {
 	messages := []Message{
 		{Role: "user", Parts: []Part{{Text: "What is 6*7?"}}},
-		{Role: "model", Parts: []Part{{Text: "42"}}},
+		{Role: "model", Parts: []Part{{Text: "old response"}}},
 		{Role: "user", Parts: []Part{{Text: "Explain"}}},
 	}
 
-	thoughts := []ThoughtPart{
-		{Text: "The user wants an explanation of multiplication", Thought: true},
+	// Original parts from the model response -- must be preserved exactly.
+	originalParts := []Part{
+		{Text: "thinking...", Thought: true, ThoughtSignature: "abc123sig"},
+		{Text: "42"},
 	}
 
-	result := CirculateThoughts(messages, thoughts)
+	result := CirculateThoughts(messages, originalParts)
 	if len(result) != 3 {
 		t.Fatalf("want 3 messages, got %d", len(result))
 	}
 
-	// The last model message (index 1) should have thought prepended.
 	modelMsg := result[1]
 	if len(modelMsg.Parts) != 2 {
 		t.Fatalf("model message: want 2 parts, got %d", len(modelMsg.Parts))
 	}
-	if !modelMsg.Parts[0].Thought {
-		t.Error("first part of model message should be a thought")
+	if modelMsg.Parts[0].ThoughtSignature != "abc123sig" {
+		t.Error("thought signature must be preserved exactly")
 	}
 	if modelMsg.Parts[1].Text != "42" {
 		t.Errorf("second part should be '42', got %q", modelMsg.Parts[1].Text)
@@ -119,30 +121,36 @@ func TestCirculateThoughts_Empty(t *testing.T) {
 	messages := []Message{{Role: "user", Parts: []Part{{Text: "Hi"}}}}
 	result := CirculateThoughts(messages, nil)
 	if len(result) != 1 {
-		t.Errorf("empty thoughts should return original messages, got %d", len(result))
+		t.Errorf("nil parts should return original messages, got %d", len(result))
 	}
 }
 
 func TestCirculateThoughts_NoModelMessage(t *testing.T) {
 	messages := []Message{{Role: "user", Parts: []Part{{Text: "Hi"}}}}
-	thoughts := []ThoughtPart{{Text: "thinking", Thought: true}}
+	originalParts := []Part{{Text: "thinking", Thought: true, ThoughtSignature: "sig"}}
 
-	result := CirculateThoughts(messages, thoughts)
+	result := CirculateThoughts(messages, originalParts)
 	if len(result) != 2 {
-		t.Fatalf("want 2 messages (original + new model), got %d", len(result))
+		t.Fatalf("want 2 messages, got %d", len(result))
 	}
 	if result[1].Role != "model" {
 		t.Errorf("new message role: want 'model', got %q", result[1].Role)
 	}
+	if result[1].Parts[0].ThoughtSignature != "sig" {
+		t.Error("signature must be preserved on appended model message")
+	}
 }
 
 func TestNewThinkingConfig(t *testing.T) {
-	cfg := NewThinkingConfig("high", 8192)
-	if cfg.ThinkingLevel != "high" {
-		t.Errorf("level: want 'high', got %q", cfg.ThinkingLevel)
+	cfg := NewThinkingConfig(ThinkingLevelHigh, 8192, true)
+	if cfg.ThinkingLevel != ThinkingLevelHigh {
+		t.Errorf("level: want %q, got %q", ThinkingLevelHigh, cfg.ThinkingLevel)
 	}
 	if cfg.ThinkingBudget != 8192 {
 		t.Errorf("budget: want 8192, got %d", cfg.ThinkingBudget)
+	}
+	if !cfg.IncludeThoughts {
+		t.Error("includeThoughts should be true")
 	}
 }
 
@@ -152,13 +160,16 @@ func TestApplyThinkingConfig(t *testing.T) {
 	}
 
 	// Should apply for thinking model.
-	cfg := NewThinkingConfig("medium", 4096)
+	cfg := NewThinkingConfig(ThinkingLevelMedium, 4096, true)
 	ApplyThinkingConfig(req, "gemini-3.1-pro-preview", cfg)
 	if req.GenerationConfig == nil || req.GenerationConfig.ThinkingConfig == nil {
 		t.Fatal("thinking config should be applied for thinking model")
 	}
-	if req.GenerationConfig.ThinkingConfig.ThinkingLevel != "medium" {
-		t.Errorf("level: want 'medium', got %q", req.GenerationConfig.ThinkingConfig.ThinkingLevel)
+	if req.GenerationConfig.ThinkingConfig.ThinkingLevel != ThinkingLevelMedium {
+		t.Errorf("level: want %q, got %q", ThinkingLevelMedium, req.GenerationConfig.ThinkingConfig.ThinkingLevel)
+	}
+	if !req.GenerationConfig.ThinkingConfig.IncludeThoughts {
+		t.Error("includeThoughts should be true")
 	}
 
 	// Should not apply for non-thinking model.

@@ -365,6 +365,8 @@ func TestPartToEvent_AllTypes(t *testing.T) {
 	}{
 		{"text", Part{Text: "hello"}, EventText, false},
 		{"thought", Part{Text: "thinking...", Thought: true}, EventThoughtSignature, false},
+		{"signature_only", Part{ThoughtSignature: "abc123"}, EventThoughtSignature, false},
+		{"thought_with_sig", Part{Text: "t", Thought: true, ThoughtSignature: "sig"}, EventThoughtSignature, false},
 		{"function_call", Part{FunctionCall: &FunctionCall{Name: "fn", Args: map[string]any{"a": "b"}}}, EventToolCall, false},
 		{"empty", Part{}, EventText, true},
 		{"inline_data_only", Part{InlineData: &InlineData{MIMEType: "image/png", Data: "abc"}}, EventText, true},

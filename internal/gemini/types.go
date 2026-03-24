@@ -72,6 +72,7 @@ type Part struct {
 	FunctionCall     *FunctionCall     `json:"functionCall,omitempty"`
 	FunctionResponse *FunctionResponse `json:"functionResponse,omitempty"`
 	Thought          bool              `json:"thought,omitempty"`
+	ThoughtSignature string            `json:"thoughtSignature,omitempty"` // Opaque base64 signature, must be preserved exactly
 }
 
 // InlineData represents inline binary data (images, audio, etc.) in a message.
@@ -122,8 +123,9 @@ type FunctionCallingConfig struct {
 
 // ThoughtPart represents a reasoning/thinking part from a Gemini 3.x model.
 type ThoughtPart struct {
-	Text    string `json:"text"`
-	Thought bool   `json:"thought"` // Must be true for valid thought parts
+	Text             string `json:"text"`
+	Thought          bool   `json:"thought"`                    // Must be true for valid thought parts
+	ThoughtSignature string `json:"thoughtSignature,omitempty"` // Opaque signature, preserve exactly
 }
 
 // UsageMetadata contains token usage information from a Gemini response.
@@ -154,9 +156,18 @@ type GenerationConfig struct {
 
 // ThinkingConfig controls the model's internal reasoning behaviour.
 type ThinkingConfig struct {
-	ThinkingBudget int    `json:"thinkingBudget,omitempty"`
-	ThinkingLevel  string `json:"thinkingLevel,omitempty"` // off, low, medium, high
+	IncludeThoughts bool   `json:"includeThoughts,omitempty"` // Must be true to receive thought text
+	ThinkingBudget  int    `json:"thinkingBudget,omitempty"`  // Token budget (Gemini 2.5). -1 = dynamic
+	ThinkingLevel   string `json:"thinkingLevel,omitempty"`   // LOW, MEDIUM, HIGH, MINIMAL (Gemini 3.x)
 }
+
+// ThinkingLevel enum constants matching the Gemini API.
+const (
+	ThinkingLevelLow     = "LOW"
+	ThinkingLevelMedium  = "MEDIUM"
+	ThinkingLevelHigh    = "HIGH"
+	ThinkingLevelMinimal = "MINIMAL"
+)
 
 // ResponseSchema defines the expected JSON schema for structured output responses.
 // Mirrors a subset of the OpenAPI Schema Object used by the Gemini API.
@@ -189,7 +200,7 @@ type CostEstimate struct {
 // GenerateContentRequest is the request body for the generateContent endpoint.
 type GenerateContentRequest struct {
 	Contents          []Message         `json:"contents"`
-	SystemInstruction *Part             `json:"systemInstruction,omitempty"`
+	SystemInstruction *Message          `json:"systemInstruction,omitempty"`
 	Tools             []Tool            `json:"tools,omitempty"`
 	ToolConfig        *ToolConfig       `json:"toolConfig,omitempty"`
 	GenerationConfig  *GenerationConfig `json:"generationConfig,omitempty"`
@@ -310,7 +321,7 @@ type CountTokensResponse struct {
 type CachedContentRequest struct {
 	Model             string                `json:"model"`
 	Contents          []Message             `json:"contents,omitempty"`
-	SystemInstruction *Part                 `json:"systemInstruction,omitempty"`
+	SystemInstruction *Message              `json:"systemInstruction,omitempty"`
 	Tools             []Tool                `json:"tools,omitempty"`
 	DisplayName       string                `json:"displayName,omitempty"`
 	TTL               string                `json:"ttl,omitempty"` // e.g., "3600s"
