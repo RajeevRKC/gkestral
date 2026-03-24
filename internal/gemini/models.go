@@ -158,7 +158,9 @@ func TokenEconomics(modelID string, inputTokens, outputTokens, cachedTokens int)
 	}
 
 	cachedInputCost := float64(nonCachedInput) / 1_000_000.0 * model.InputPricePerM
-	if model.CachingDiscount > 0 && cachedTokens > 0 {
+	if cachedTokens > 0 {
+		// Cached tokens get the discount rate. If no discount (CachingDiscount == 0),
+		// they are billed at full input price -- never free.
 		discountedRate := model.InputPricePerM * (1.0 - model.CachingDiscount)
 		cachedInputCost += float64(cachedTokens) / 1_000_000.0 * discountedRate
 	}

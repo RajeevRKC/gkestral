@@ -15,7 +15,13 @@ import (
 // Struct fields must have json tags. Fields with "required" in their gemini tag
 // are marked as required: `gemini:"required"`
 func SchemaFromStruct(v any) (*ResponseSchema, error) {
+	if v == nil {
+		return nil, fmt.Errorf("input must not be nil")
+	}
 	t := reflect.TypeOf(v)
+	if t == nil {
+		return nil, fmt.Errorf("cannot determine type of nil value")
+	}
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}

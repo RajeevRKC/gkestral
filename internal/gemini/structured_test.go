@@ -101,6 +101,13 @@ func TestSchemaFromStruct_NonStruct(t *testing.T) {
 	}
 }
 
+func TestSchemaFromStruct_Nil(t *testing.T) {
+	_, err := SchemaFromStruct(nil)
+	if err == nil {
+		t.Error("expected error for nil input")
+	}
+}
+
 func TestSchemaJSON(t *testing.T) {
 	schema, err := SchemaFromStruct(TestPerson{})
 	if err != nil {
