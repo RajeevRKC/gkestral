@@ -22,6 +22,8 @@ const (
 	EventError
 	// EventDone indicates the stream has completed successfully.
 	EventDone
+	// EventGrounding indicates grounding/citation metadata was received.
+	EventGrounding
 )
 
 // String returns the string representation of an EventType.
@@ -37,6 +39,8 @@ func (e EventType) String() string {
 		return "error"
 	case EventDone:
 		return "done"
+	case EventGrounding:
+		return "grounding"
 	default:
 		return fmt.Sprintf("unknown(%d)", int(e))
 	}
@@ -49,8 +53,9 @@ type ProviderEvent struct {
 	Text    string        `json:"text,omitempty"`
 	ToolCall *ToolCallData `json:"tool_call,omitempty"`
 	Thought *ThoughtPart  `json:"thought,omitempty"`
-	Error   error         `json:"error,omitempty"`
-	Usage   *UsageMetadata `json:"usage,omitempty"`
+	Error     error          `json:"error,omitempty"`
+	Usage     *UsageMetadata `json:"usage,omitempty"`
+	Grounding []Citation     `json:"grounding,omitempty"`
 }
 
 // Message represents a single turn in a Gemini conversation.
