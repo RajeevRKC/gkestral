@@ -39,25 +39,21 @@ func (c *Client) StreamResponse(ctx context.Context, model string, request *Gene
 func (c *Client) runStream(ctx context.Context, model string, request *GenerateContentRequest, events chan<- ProviderEvent) {
 	req, err := c.buildStreamRequest(ctx, model, request)
 	if err != nil {
-		events <- ProviderEvent{Type: EventError, Error: fmt.Errorf("build request: %w", err)}
+		sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: fmt.Errorf("build request: %w", err)})
 		return
 	}
 
 	// Use the raw HTTP client (no retry wrapper) for streaming.
-	// Streaming retries are handled at the consumer level.
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		events <- ProviderEvent{Type: EventError, Error: fmt.Errorf("stream request: %w", err)}
+		sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: fmt.Errorf("stream request: %w", err)})
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
-		events <- ProviderEvent{
-			Type:  EventError,
-			Error: &APIError{StatusCode: resp.StatusCode, Message: string(body)},
-		}
+		sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: &APIError{StatusCode: resp.StatusCode, Message: string(body)}})
 		return
 	}
 
@@ -101,10 +97,7 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 
 		var chunk GenerateContentResponse
 		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
-			events <- ProviderEvent{
-				Type:  EventError,
-				Error: fmt.Errorf("parse SSE chunk: %w", err),
-			}
+			sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: fmt.Errorf("parse SSE chunk: %w", err)})
 			return
 		}
 
@@ -115,10 +108,7 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 
 		// Check for prompt-level blocking.
 		if chunk.PromptFeedback != nil && chunk.PromptFeedback.BlockReason != "" {
-			events <- ProviderEvent{
-				Type:  EventError,
-				Error: fmt.Errorf("prompt blocked: %s", chunk.PromptFeedback.BlockReason),
-			}
+			sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: fmt.Errorf("prompt blocked: %s", chunk.PromptFeedback.BlockReason)})
 			return
 		}
 
@@ -132,10 +122,7 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 		// Check for safety-blocked candidate.
 		if candidate.FinishReason == "SAFETY" {
 			reasons := extractBlockReasons(candidate.SafetyRatings)
-			events <- ProviderEvent{
-				Type:  EventError,
-				Error: fmt.Errorf("response blocked by safety filter: %s", strings.Join(reasons, ", ")),
-			}
+			sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: fmt.Errorf("response blocked by safety filter: %s", strings.Join(reasons, ", "))})
 			return
 		}
 
@@ -144,26 +131,10 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 			for _, part := range candidate.Content.Parts {
 				event := partToEvent(part)
 				if event != nil {
-					select {
-					case events <- *event:
-					case <-ctx.Done():
-						events <- ProviderEvent{Type: EventError, Error: ctx.Err()}
+					if !sendEvent(ctx, events, *event) {
 						return
 					}
 				}
-			}
-		}
-
-		// Check for terminal finish reasons.
-		if candidate.FinishReason != "" && candidate.FinishReason != "STOP" && candidate.FinishReason != "SAFETY" {
-			// MAX_TOKENS, RECITATION, etc. are non-error terminal states.
-			if candidate.FinishReason == "MAX_TOKENS" {
-				events <- ProviderEvent{
-					Type:  EventDone,
-					Usage: lastUsage,
-					Text:  candidate.FinishReason,
-				}
-				return
 			}
 		}
 
@@ -171,38 +142,31 @@ func parseSSEStream(ctx context.Context, body io.Reader, events chan<- ProviderE
 		if candidate.GroundingMetadata != nil {
 			citations := extractCitations(candidate.GroundingMetadata)
 			if len(citations) > 0 {
-				events <- ProviderEvent{
-					Type:      EventGrounding,
-					Grounding: citations,
+				if !sendEvent(ctx, events, ProviderEvent{Type: EventGrounding, Grounding: citations}) {
+					return
 				}
 			}
 		}
 
-		// STOP with usage = final chunk.
-		if candidate.FinishReason == "STOP" {
-			events <- ProviderEvent{
-				Type:  EventDone,
-				Usage: lastUsage,
-			}
+		// Check for terminal finish reasons.
+		switch candidate.FinishReason {
+		case "STOP":
+			sendEvent(ctx, events, ProviderEvent{Type: EventDone, Usage: lastUsage})
+			return
+		case "MAX_TOKENS", "RECITATION":
+			sendEvent(ctx, events, ProviderEvent{Type: EventDone, Usage: lastUsage, Text: candidate.FinishReason})
 			return
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		events <- ProviderEvent{
-			Type:  EventError,
-			Error: fmt.Errorf("read SSE stream: %w", err),
-		}
+		sendEvent(ctx, events, ProviderEvent{Type: EventError, Error: fmt.Errorf("read SSE stream: %w", err)})
 		return
 	}
 
 	// Stream ended without a STOP finish reason -- emit Done with whatever
-	// usage we accumulated. This handles edge cases where the stream closes
-	// cleanly but the final chunk has no explicit finish reason.
-	events <- ProviderEvent{
-		Type:  EventDone,
-		Usage: lastUsage,
-	}
+	// usage we accumulated.
+	sendEvent(ctx, events, ProviderEvent{Type: EventDone, Usage: lastUsage})
 }
 
 // partToEvent converts a Gemini response Part to a ProviderEvent.
@@ -269,6 +233,22 @@ func extractCitations(gm *GroundingMetadata) []Citation {
 		}
 	}
 	return citations
+}
+
+// sendEvent sends an event to the channel with context cancellation guard.
+// Returns false if the context was cancelled (caller should return).
+func sendEvent(ctx context.Context, events chan<- ProviderEvent, event ProviderEvent) bool {
+	select {
+	case events <- event:
+		return true
+	case <-ctx.Done():
+		// Best-effort send of cancellation error.
+		select {
+		case events <- ProviderEvent{Type: EventError, Error: ctx.Err()}:
+		default:
+		}
+		return false
+	}
 }
 
 // APIError is defined in retry.go.

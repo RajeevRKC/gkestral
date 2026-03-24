@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // SchemaFromStruct generates a Gemini-compatible ResponseSchema from a Go struct.
 // Uses reflect to inspect struct tags and types. Supports nested structs,
 // slices, and basic types (string, int, float64, bool).
+// Handles self-referential structs by tracking visited types.
 //
 // Struct fields must have json tags. Fields with "required" in their gemini tag
 // are marked as required: `gemini:"required"`
@@ -20,11 +22,20 @@ func SchemaFromStruct(v any) (*ResponseSchema, error) {
 	if t.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("expected struct, got %s", t.Kind())
 	}
-	return structToSchema(t)
+	visited := make(map[reflect.Type]bool)
+	return structToSchema(t, visited)
 }
 
 // structToSchema converts a reflect.Type (struct) to a ResponseSchema.
-func structToSchema(t reflect.Type) (*ResponseSchema, error) {
+// visited tracks types already being processed to prevent infinite recursion.
+func structToSchema(t reflect.Type, visited map[reflect.Type]bool) (*ResponseSchema, error) {
+	if visited[t] {
+		// Self-referential type -- return opaque object to break cycle.
+		return &ResponseSchema{Type: "object"}, nil
+	}
+	visited[t] = true
+	defer delete(visited, t)
+
 	schema := &ResponseSchema{
 		Type:       "object",
 		Properties: make(map[string]*ResponseSchema),
@@ -40,16 +51,15 @@ func structToSchema(t reflect.Type) (*ResponseSchema, error) {
 		if jsonTag == "" || jsonTag == "-" {
 			continue
 		}
-		// Extract field name from json tag (before comma).
 		name := jsonTag
-		if idx := indexOf(jsonTag, ','); idx != -1 {
+		if idx := strings.IndexByte(jsonTag, ','); idx != -1 {
 			name = jsonTag[:idx]
 		}
 		if name == "" {
 			continue
 		}
 
-		fieldSchema, err := typeToSchema(field.Type)
+		fieldSchema, err := typeToSchema(field.Type, visited)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.Name, err)
 		}
@@ -76,7 +86,7 @@ func structToSchema(t reflect.Type) (*ResponseSchema, error) {
 }
 
 // typeToSchema maps a Go type to a Gemini ResponseSchema type.
-func typeToSchema(t reflect.Type) (*ResponseSchema, error) {
+func typeToSchema(t reflect.Type, visited map[reflect.Type]bool) (*ResponseSchema, error) {
 	// Dereference pointer.
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -92,28 +102,18 @@ func typeToSchema(t reflect.Type) (*ResponseSchema, error) {
 	case reflect.Bool:
 		return &ResponseSchema{Type: "boolean"}, nil
 	case reflect.Slice:
-		itemSchema, err := typeToSchema(t.Elem())
+		itemSchema, err := typeToSchema(t.Elem(), visited)
 		if err != nil {
 			return nil, err
 		}
 		return &ResponseSchema{Type: "array", Items: itemSchema}, nil
 	case reflect.Struct:
-		return structToSchema(t)
+		return structToSchema(t, visited)
 	case reflect.Map:
 		return &ResponseSchema{Type: "object"}, nil
 	default:
 		return &ResponseSchema{Type: "string"}, nil
 	}
-}
-
-// indexOf returns the index of sep in s, or -1 if not found.
-func indexOf(s string, sep byte) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == sep {
-			return i
-		}
-	}
-	return -1
 }
 
 // EnableStructuredOutput configures a request for deterministic JSON output.
@@ -129,6 +129,9 @@ func EnableStructuredOutput(request *GenerateContentRequest, schema *ResponseSch
 // ParseStructuredResponse parses a JSON response from structured output mode
 // into the given target struct.
 func ParseStructuredResponse(resp *GenerateContentResponse, target any) error {
+	if target == nil {
+		return fmt.Errorf("target must not be nil")
+	}
 	if resp == nil || len(resp.Candidates) == 0 {
 		return fmt.Errorf("empty response")
 	}

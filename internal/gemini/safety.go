@@ -17,6 +17,14 @@ const (
 	BlockLowAndAbove    = "BLOCK_LOW_AND_ABOVE"
 )
 
+// Finish reasons.
+const (
+	FinishReasonStop      = "STOP"
+	FinishReasonSafety    = "SAFETY"
+	FinishReasonMaxTokens = "MAX_TOKENS"
+	FinishReasonRecitation = "RECITATION"
+)
+
 // AllHarmCategories returns all supported harm categories.
 func AllHarmCategories() []string {
 	return []string{
@@ -83,9 +91,9 @@ func ValidateResponse(resp *GenerateContentResponse) (blocked bool, reasons []st
 	}
 
 	// Check candidate-level blocking.
-	if len(resp.Candidates) > 0 {
+	if resp.Candidates != nil && len(resp.Candidates) > 0 {
 		c := resp.Candidates[0]
-		if c.FinishReason == "SAFETY" {
+		if c.FinishReason == FinishReasonSafety {
 			for _, r := range c.SafetyRatings {
 				if r.Blocked {
 					reasons = append(reasons, r.Category)

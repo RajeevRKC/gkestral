@@ -93,8 +93,7 @@ func CirculateThoughts(messages []Message, thoughts []ThoughtPart) []Message {
 	}
 
 	// Find the last model message and prepend thoughts.
-	result := make([]Message, len(messages))
-	copy(result, messages)
+	result := append([]Message(nil), messages...)
 
 	for i := len(result) - 1; i >= 0; i-- {
 		if result[i].Role == "model" {
