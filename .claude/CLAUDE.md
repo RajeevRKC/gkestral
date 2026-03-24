@@ -25,10 +25,11 @@
 ## FABRICATE
 
 Project files: `.fabricate/PROJECT.md`, `ROADMAP.md`, `STATE.md`
-Current: Milestone 1 (v0.1.0), Phase 01 -- Gemini Mastery (EXECUTING)
-Plan: `.fabricate/phases/01-gemini-mastery/01-01-PLAN.md` (16 tasks, 8 waves)
-Progress: Waves 1-5 done (13/16 tasks). Next: T11 (search grounding, Wave 6)
-Handoff: `.fabricate/phases/01-gemini-mastery/HANDOFF-2026-03-23.md`
+Current: Milestone 1 (v0.1.0), Phase 01 -- Gemini Mastery (COMPLETE)
+Plan: `.fabricate/phases/01-gemini-mastery/01-01-PLAN.md` (16/16 tasks, 8/8 waves)
+Progress: ALL DONE. 87.5% coverage. Three-way handshake complete.
+Handoff: `.fabricate/phases/01-gemini-mastery/HANDOFF-2026-03-24.md`
+Next: Close Phase 01 (SUMMARY.md), then plan Phase 02
 
 ## Project Structure
 
@@ -47,7 +48,10 @@ internal/gemini/                -- Gemini client library (Phase 01 deliverable)
   tools.go                      -- Function calling with parallel dispatch
   router.go                     -- Model router with task classification
   system.go                     -- System prompt engineering
-  *_test.go                     -- 87.1% coverage
+  grounding.go                  -- Search grounding API
+  integration_test.go           -- Integration tests (build tag: integration)
+  *_test.go                     -- 87.5% coverage
+docs/gemini-mastery-reference.md -- Phase 01 reference document (13 API areas)
 output/kestrel/                 -- POC prototype (reference, migrates to Wails in Phase 03)
 website/                        -- Marketing site (gkestral.com)
 .fabricate/                     -- FABRICATE project management
