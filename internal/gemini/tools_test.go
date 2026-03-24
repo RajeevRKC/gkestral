@@ -467,3 +467,43 @@ func TestApplyTools(t *testing.T) {
 		t.Errorf("mode = %q, want %q", req.ToolConfig.FunctionCallingConfig.Mode, "AUTO")
 	}
 }
+
+func TestDispatchSequential_ContextCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	var callCount atomic.Int32
+
+	calls := []ToolCallData{
+		{ID: "1", FunctionName: "tool_a"},
+		{ID: "2", FunctionName: "tool_b"},
+		{ID: "3", FunctionName: "tool_c"},
+	}
+
+	executor := func(ctx context.Context, call ToolCallData) (map[string]any, error) {
+		n := callCount.Add(1)
+		if n == 1 {
+			// First call succeeds, then cancel context.
+			cancel()
+			return map[string]any{"ok": true}, nil
+		}
+		return map[string]any{"ok": true}, nil
+	}
+
+	results := DispatchSequential(ctx, calls, executor)
+
+	if len(results) != 3 {
+		t.Fatalf("got %d results, want 3", len(results))
+	}
+
+	// First call should succeed.
+	if results[0]["ok"] != true {
+		t.Errorf("results[0] should succeed, got %v", results[0])
+	}
+
+	// Remaining calls should contain cancellation error.
+	for i := 1; i < 3; i++ {
+		errStr, ok := results[i]["error"].(string)
+		if !ok || errStr == "" {
+			t.Errorf("results[%d] should contain error string, got %v", i, results[i])
+		}
+	}
+}

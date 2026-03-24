@@ -1,8 +1,9 @@
 package gemini
 
 import (
+	"cmp"
 	"fmt"
-	"sort"
+	"slices"
 )
 
 // ModelFamily classifies models into capability groups.
@@ -134,8 +135,8 @@ func ListModels() []ModelConfig {
 	for _, m := range modelRegistry {
 		models = append(models, m)
 	}
-	sort.Slice(models, func(i, j int) bool {
-		return models[i].ID < models[j].ID
+	slices.SortFunc(models, func(a, b ModelConfig) int {
+		return cmp.Compare(a.ID, b.ID)
 	})
 	return models
 }

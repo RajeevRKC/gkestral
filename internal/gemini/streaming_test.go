@@ -391,6 +391,21 @@ func TestPartToEvent_AllTypes(t *testing.T) {
 	}
 }
 
+func TestSendEvent_ContextCancelledChannelFull(t *testing.T) {
+	// Pre-cancelled context with a zero-capacity channel exercises the
+	// best-effort drop branch (inner default case in sendEvent).
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	// Unbuffered channel -- send will block.
+	events := make(chan ProviderEvent)
+
+	ok := sendEvent(ctx, events, ProviderEvent{Type: EventText, Text: "dropped"})
+	if ok {
+		t.Error("sendEvent should return false when context is cancelled")
+	}
+}
+
 func TestExtractCitations(t *testing.T) {
 	gm := &GroundingMetadata{
 		GroundingChunks: []GroundingChunk{

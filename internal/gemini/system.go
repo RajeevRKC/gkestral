@@ -179,9 +179,9 @@ func ValidateSystemPrompt(prompt string, modelID string) []string {
 			"system prompt mentions temperature settings; temperature is controlled via GenerationConfig, not prompt text")
 	}
 
-	// Pattern: JSON-only instructions without structured output mode.
-	if (strings.Contains(lower, "respond only in json") || strings.Contains(lower, "output json only")) &&
-		!strings.Contains(lower, "responsemimetype") {
+	// Pattern: JSON-only instructions in the prompt text (should use structured output mode instead).
+	if strings.Contains(lower, "respond only in json") || strings.Contains(lower, "output json only") ||
+		strings.Contains(lower, "return json") || strings.Contains(lower, "reply in json") {
 		warnings = append(warnings,
 			"prompt requests JSON-only output; use EnableStructuredOutput with a ResponseSchema for deterministic JSON instead of prompt-based instruction")
 	}

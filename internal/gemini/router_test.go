@@ -250,6 +250,47 @@ func TestContainsAny(t *testing.T) {
 	}
 }
 
+func TestRouter_RouteModel_FallbackToSecondary(t *testing.T) {
+	// Custom router where preferred model is absent from the registry.
+	r := NewCustomRouter([]RoutingRule{
+		{
+			TaskClass:      TaskDeepReasoning,
+			PreferredModel: "gemini-99-nonexistent",
+			FallbackModels: []string{"also-nonexistent", "gemini-2.5-pro"},
+		},
+		{
+			TaskClass:      TaskConversation,
+			PreferredModel: "gemini-2.5-flash",
+		},
+	})
+
+	model, rule, err := r.RouteModel(TaskDeepReasoning)
+	if err != nil {
+		t.Fatalf("expected fallback to succeed, got error: %v", err)
+	}
+	if model.ID != "gemini-2.5-pro" {
+		t.Errorf("fallback model = %q, want %q", model.ID, "gemini-2.5-pro")
+	}
+	if rule == nil {
+		t.Fatal("expected non-nil rule")
+	}
+}
+
+func TestRouter_RouteModel_AllFallbacksFail(t *testing.T) {
+	r := NewCustomRouter([]RoutingRule{
+		{
+			TaskClass:      TaskDeepReasoning,
+			PreferredModel: "nonexistent-1",
+			FallbackModels: []string{"nonexistent-2", "nonexistent-3"},
+		},
+	})
+
+	_, _, err := r.RouteModel(TaskDeepReasoning)
+	if err == nil {
+		t.Fatal("expected error when all models are unknown")
+	}
+}
+
 func TestDefaultRoutingRules_Coverage(t *testing.T) {
 	rules := defaultRoutingRules()
 

@@ -16,6 +16,11 @@ const (
 	// DefaultAPIVersion is the API version prefix. Use v1beta for all
 	// features (context caching, grounding, 3.x models).
 	DefaultAPIVersion = "v1beta"
+
+	// API endpoint action names.
+	actionGenerateContent       = "generateContent"
+	actionStreamGenerateContent = "streamGenerateContent"
+	actionCountTokens           = "countTokens"
 )
 
 // Client is the Gemini REST API client.
@@ -162,16 +167,17 @@ func (c *Client) GenerateContent(ctx context.Context, model string, request *Gen
 		model = c.defaultModel
 	}
 
-	// Apply defaults.
-	if request.GenerationConfig == nil && c.genConfig != nil {
-		request.GenerationConfig = c.genConfig
+	// Shallow copy to avoid mutating the caller's request.
+	reqCopy := *request
+	if reqCopy.GenerationConfig == nil && c.genConfig != nil {
+		reqCopy.GenerationConfig = c.genConfig
 	}
-	if len(request.SafetySettings) == 0 && len(c.safety) > 0 {
-		request.SafetySettings = c.safety
+	if len(reqCopy.SafetySettings) == 0 && len(c.safety) > 0 {
+		reqCopy.SafetySettings = c.safety
 	}
 
-	url := c.ModelEndpoint(model, "generateContent")
-	req, err := c.buildRequest(ctx, http.MethodPost, url, request)
+	url := c.ModelEndpoint(model, actionGenerateContent)
+	req, err := c.buildRequest(ctx, http.MethodPost, url, &reqCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +202,7 @@ func (c *Client) CountTokens(ctx context.Context, model string, request *CountTo
 		model = c.defaultModel
 	}
 
-	url := c.ModelEndpoint(model, "countTokens")
+	url := c.ModelEndpoint(model, actionCountTokens)
 	req, err := c.buildRequest(ctx, http.MethodPost, url, request)
 	if err != nil {
 		return nil, err
@@ -221,7 +227,7 @@ func (c *Client) StreamEndpoint(model string) string {
 	if model == "" {
 		model = c.defaultModel
 	}
-	return fmt.Sprintf("%s/%s/models/%s:streamGenerateContent?alt=sse", c.baseURL, c.apiVersion, model)
+	return c.ModelEndpoint(model, actionStreamGenerateContent) + "?alt=sse"
 }
 
 // buildStreamRequest creates a request for SSE streaming.
@@ -234,14 +240,15 @@ func (c *Client) buildStreamRequest(ctx context.Context, model string, request *
 		model = c.defaultModel
 	}
 
-	// Apply defaults.
-	if request.GenerationConfig == nil && c.genConfig != nil {
-		request.GenerationConfig = c.genConfig
+	// Shallow copy to avoid mutating the caller's request.
+	reqCopy := *request
+	if reqCopy.GenerationConfig == nil && c.genConfig != nil {
+		reqCopy.GenerationConfig = c.genConfig
 	}
-	if len(request.SafetySettings) == 0 && len(c.safety) > 0 {
-		request.SafetySettings = c.safety
+	if len(reqCopy.SafetySettings) == 0 && len(c.safety) > 0 {
+		reqCopy.SafetySettings = c.safety
 	}
 
 	url := c.StreamEndpoint(model)
-	return c.buildRequest(ctx, http.MethodPost, url, request)
+	return c.buildRequest(ctx, http.MethodPost, url, &reqCopy)
 }

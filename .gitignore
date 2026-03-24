@@ -30,6 +30,10 @@ desktop.ini
 *.so
 *.dylib
 
+# Test/coverage artifacts
+coverage.out
+*.test
+
 # Temporary
 *.tmp
 *.log

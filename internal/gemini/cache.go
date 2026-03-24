@@ -118,25 +118,44 @@ func (cm *CacheManager) Get(ctx context.Context, name string) (*CacheEntry, erro
 	return &entry, nil
 }
 
-// List returns all cached content entries.
+// List returns all cached content entries, handling pagination automatically.
 func (cm *CacheManager) List(ctx context.Context) ([]CacheEntry, error) {
-	url := cm.cacheEndpoint()
-	req, err := cm.client.buildRequest(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("build cache list request: %w", err)
+	var all []CacheEntry
+	baseURL := cm.cacheEndpoint()
+
+	pageToken := ""
+	for {
+		url := baseURL
+		if pageToken != "" {
+			url += "?pageToken=" + pageToken
+		}
+
+		req, err := cm.client.buildRequest(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return nil, fmt.Errorf("build cache list request: %w", err)
+		}
+
+		resp, err := cm.client.doRequest(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("cache list: %w", err)
+		}
+
+		var listResp cacheListResponse
+		if err := json.NewDecoder(resp.Body).Decode(&listResp); err != nil {
+			resp.Body.Close()
+			return nil, fmt.Errorf("decode cache list response: %w", err)
+		}
+		resp.Body.Close()
+
+		all = append(all, listResp.CachedContents...)
+
+		if listResp.NextPageToken == "" {
+			break
+		}
+		pageToken = listResp.NextPageToken
 	}
 
-	resp, err := cm.client.doRequest(ctx, req)
-	if err != nil {
-		return nil, fmt.Errorf("cache list: %w", err)
-	}
-	defer resp.Body.Close()
-
-	var listResp cacheListResponse
-	if err := json.NewDecoder(resp.Body).Decode(&listResp); err != nil {
-		return nil, fmt.Errorf("decode cache list response: %w", err)
-	}
-	return listResp.CachedContents, nil
+	return all, nil
 }
 
 // Delete removes a cached content resource.
@@ -300,7 +319,10 @@ func (cm *CacheManager) validateMinTokens(modelID string, contents []Message, sy
 		return nil
 	}
 
-	// Rough estimate: 4 chars per token (English average).
+	// Rough estimate: 4 chars per token (English average). This heuristic is
+	// unreliable for non-ASCII content (Arabic, CJK) and dense JSON, which
+	// tokenise significantly denser. For precise validation, use the
+	// CountTokens API before creating a cache.
 	var charCount int
 	for _, msg := range contents {
 		for _, part := range msg.Parts {

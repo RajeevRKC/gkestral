@@ -321,6 +321,75 @@ func TestClient_DefaultsApplied(t *testing.T) {
 	}
 }
 
+func TestClient_GenerateContent_DoesNotMutateCaller(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		json.NewEncoder(w).Encode(GenerateContentResponse{
+			Candidates: []Candidate{{Content: &CandidateContent{Role: "model", Parts: []Part{{Text: "ok"}}}}},
+		})
+	}))
+	defer server.Close()
+
+	temp := 0.5
+	c := NewClient(
+		WithAPIKey("key"),
+		WithBaseURL(server.URL),
+		WithGenerationConfig(GenerationConfig{Temperature: &temp}),
+		WithSafetySettings(DefaultSafetySettings()),
+	)
+
+	request := &GenerateContentRequest{
+		Contents: []Message{{Role: "user", Parts: []Part{{Text: "test"}}}},
+	}
+
+	// Request starts with nil GenerationConfig and empty SafetySettings.
+	if request.GenerationConfig != nil {
+		t.Fatal("precondition: GenerationConfig should be nil before call")
+	}
+
+	_, err := c.GenerateContent(context.Background(), "", request)
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+
+	// After the call, the caller's request must remain unmodified.
+	if request.GenerationConfig != nil {
+		t.Error("GenerateContent mutated caller's request: GenerationConfig is no longer nil")
+	}
+	if len(request.SafetySettings) != 0 {
+		t.Error("GenerateContent mutated caller's request: SafetySettings is no longer empty")
+	}
+}
+
+func TestClient_BuildStreamRequest_NilRequest(t *testing.T) {
+	c := NewClient(WithAPIKey("key"))
+	_, err := c.buildStreamRequest(context.Background(), "", nil)
+	if err == nil {
+		t.Fatal("expected error for nil request, got nil")
+	}
+}
+
+func TestClient_WithHTTPClient_CustomTransport(t *testing.T) {
+	custom := &http.Client{Timeout: 5000000000} // 5s
+	c := NewClient(
+		WithAPIKey("custom-key"),
+		WithHTTPClient(custom),
+	)
+
+	// Verify the custom client is used.
+	if c.httpClient != custom {
+		t.Error("custom HTTP client not applied")
+	}
+
+	// Verify auth header still works with custom client.
+	req, err := c.buildRequest(context.Background(), http.MethodPost, "https://example.com", nil)
+	if err != nil {
+		t.Fatalf("buildRequest error: %v", err)
+	}
+	if got := req.Header.Get("x-goog-api-key"); got != "custom-key" {
+		t.Errorf("x-goog-api-key = %q, want %q", got, "custom-key")
+	}
+}
+
 // matchAPIError checks if err wraps an APIError (handles fmt.Errorf wrapping).
 func matchAPIError(err error, target **APIError) bool {
 	for e := err; e != nil; {
