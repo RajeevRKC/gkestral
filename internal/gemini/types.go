@@ -71,6 +71,7 @@ type Part struct {
 	InlineData       *InlineData       `json:"inlineData,omitempty"`
 	FunctionCall     *FunctionCall     `json:"functionCall,omitempty"`
 	FunctionResponse *FunctionResponse `json:"functionResponse,omitempty"`
+	FileData         *FileData         `json:"fileData,omitempty"`
 	Thought          bool              `json:"thought,omitempty"`
 	ThoughtSignature string            `json:"thoughtSignature,omitempty"` // Opaque base64 signature, must be preserved exactly
 }
@@ -79,6 +80,13 @@ type Part struct {
 type InlineData struct {
 	MIMEType string `json:"mimeType"`
 	Data     string `json:"data"` // base64-encoded
+}
+
+// FileData references a file uploaded via the Gemini File API.
+// Use for large files (video, PDFs) that exceed InlineData limits.
+type FileData struct {
+	MIMEType string `json:"mimeType"`
+	FileURI  string `json:"fileUri"`
 }
 
 // FunctionCall represents a function call request from the model.
@@ -149,6 +157,10 @@ type GenerationConfig struct {
 	TopP             *float64          `json:"topP,omitempty"`
 	TopK             *int              `json:"topK,omitempty"`
 	MaxOutputTokens  *int              `json:"maxOutputTokens,omitempty"`
+	StopSequences    []string          `json:"stopSequences,omitempty"`
+	CandidateCount   *int              `json:"candidateCount,omitempty"`
+	PresencePenalty  *float64          `json:"presencePenalty,omitempty"`
+	FrequencyPenalty *float64          `json:"frequencyPenalty,omitempty"`
 	ResponseMIMEType string            `json:"responseMimeType,omitempty"`
 	ResponseSchema   *ResponseSchema   `json:"responseSchema,omitempty"`
 	ThinkingConfig   *ThinkingConfig   `json:"thinkingConfig,omitempty"`
