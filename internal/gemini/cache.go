@@ -63,6 +63,12 @@ func (cm *CacheManager) Create(ctx context.Context, req *CachedContentRequest) (
 		return nil, fmt.Errorf("model is required for cache creation")
 	}
 
+	// Ensure models/ prefix is present (API requires full resource path).
+	if stripModelPrefix(req.Model) == req.Model {
+		// No "models/" prefix found -- add it.
+		req.Model = "models/" + req.Model
+	}
+
 	// Validate minimum token threshold.
 	if err := cm.validateMinTokens(req.Model, req.Contents, req.SystemInstruction, req.Tools); err != nil {
 		return nil, err
@@ -161,12 +167,13 @@ type cacheUpdateRequest struct {
 }
 
 // Update extends or changes the TTL of an existing cache.
+// The updateMask query parameter is required by the Gemini REST API for PATCH.
 func (cm *CacheManager) Update(ctx context.Context, name string, ttl time.Duration) (*CacheEntry, error) {
 	if name == "" {
 		return nil, fmt.Errorf("cache name must not be empty")
 	}
 
-	url := fmt.Sprintf("%s/%s/%s", cm.client.baseURL, cm.client.apiVersion, name)
+	url := fmt.Sprintf("%s/%s/%s?updateMask=ttl", cm.client.baseURL, cm.client.apiVersion, name)
 	body := cacheUpdateRequest{
 		TTL: formatTTL(ttl),
 	}
@@ -206,6 +213,11 @@ type CacheCostComparison struct {
 
 // CacheEconomics calculates the cost comparison for caching vs no caching.
 // inputTokens is the total input tokens, cachedTokens is how many are cached.
+//
+// The break-even calculation estimates how many requests are needed before
+// cumulative cache storage costs are recovered by per-request savings.
+// Cache storage cost is approximately the cached input price per hour
+// (API charges for keeping the cache alive).
 func CacheEconomics(modelID string, inputTokens, cachedTokens, outputTokens int) (CacheCostComparison, error) {
 	withCache, err := TokenEconomics(modelID, inputTokens, outputTokens, cachedTokens)
 	if err != nil {
@@ -218,13 +230,24 @@ func CacheEconomics(modelID string, inputTokens, cachedTokens, outputTokens int)
 
 	savings := withoutCache.TotalCost - withCache.TotalCost
 
-	// Break-even: how many requests until cache storage cost is recovered.
-	// Cache storage is roughly 25% of input price per hour per model, but we
-	// simplify to: breakeven = 1 (caching pays for itself on the first request
-	// when the savings exceed the creation overhead).
+	// Break-even: estimate how many requests are needed for savings to
+	// exceed the one-time cache creation overhead.
+	// Cache creation cost ~ the full input cost of uploading the content.
+	// Storage cost ~ 25% of input price per hour (approximation).
+	// With the 75% discount, savings per request are substantial.
 	breakEven := 1
 	if savings > 0 {
-		breakEven = 1 // Caching always wins on the first cached request
+		// Creation overhead: one full-price input call for the cached tokens.
+		model, modelErr := GetModel(stripModelPrefix(modelID))
+		if modelErr == nil && model.InputPricePerM > 0 {
+			creationCost := float64(cachedTokens) / 1_000_000.0 * model.InputPricePerM
+			breakEven = int(creationCost/savings) + 1
+			if breakEven < 1 {
+				breakEven = 1
+			}
+		}
+	} else {
+		breakEven = 0 // No savings -- caching not beneficial
 	}
 
 	return CacheCostComparison{
@@ -298,6 +321,8 @@ func (cm *CacheManager) validateMinTokens(modelID string, contents []Message, sy
 }
 
 // stripModelPrefix removes the "models/" prefix if present.
+// The > check (not >=) is intentional: "models/" alone would yield an empty
+// string which is not a valid model ID, so it is left unchanged.
 func stripModelPrefix(modelID string) string {
 	const prefix = "models/"
 	if len(modelID) > len(prefix) && modelID[:len(prefix)] == prefix {

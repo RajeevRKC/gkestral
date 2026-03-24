@@ -140,9 +140,22 @@ func DispatchParallel(ctx context.Context, calls []ToolCallData, executor ToolEx
 
 // DispatchSequential executes tool calls one at a time in order.
 // Useful when tools have side effects or ordering dependencies.
+// Respects context cancellation: remaining calls are skipped if ctx is done.
 func DispatchSequential(ctx context.Context, calls []ToolCallData, executor ToolExecutor) []map[string]any {
 	results := make([]map[string]any, len(calls))
 	for i, call := range calls {
+		// Check context before each call.
+		select {
+		case <-ctx.Done():
+			results[i] = map[string]any{"error": ctx.Err().Error()}
+			// Fill remaining results with cancellation error.
+			for j := i + 1; j < len(calls); j++ {
+				results[j] = map[string]any{"error": ctx.Err().Error()}
+			}
+			return results
+		default:
+		}
+
 		result, err := executor(ctx, call)
 		if err != nil {
 			results[i] = map[string]any{"error": err.Error()}
