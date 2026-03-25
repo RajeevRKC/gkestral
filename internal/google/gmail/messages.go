@@ -210,7 +210,7 @@ func (g *GmailClient) DownloadAttachment(ctx context.Context, messageID, attachm
 	if err != nil {
 		return nil, err
 	}
-	return base64.URLEncoding.DecodeString(resp.Data)
+	return base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(resp.Data)
 }
 
 // --- Helpers ---

@@ -261,21 +261,24 @@ func NewTokenRefresher(store TokenStore) *TokenRefresher {
 }
 
 // GetValidToken returns a non-expired token, refreshing if necessary.
-// Thread-safe: only one goroutine refreshes at a time.
+// Thread-safe: only one goroutine refreshes at a time. Callbacks are
+// invoked AFTER the mutex is released to prevent deadlock.
 func (r *TokenRefresher) GetValidToken() (StoredToken, error) {
 	r.mu.Lock()
-	defer r.mu.Unlock()
 
 	token, err := r.store.Load()
 	if err != nil {
+		r.mu.Unlock()
 		return StoredToken{}, err
 	}
 
 	if !token.IsExpired() {
+		r.mu.Unlock()
 		return token, nil
 	}
 
 	if r.RefreshFunc == nil {
+		r.mu.Unlock()
 		return StoredToken{}, errors.New("auth: token expired and no RefreshFunc configured")
 	}
 
@@ -284,11 +287,15 @@ func (r *TokenRefresher) GetValidToken() (StoredToken, error) {
 		// Check for invalid_grant — permanent failure.
 		if isInvalidGrant(err) {
 			_ = r.store.Clear()
-			if r.OnReauthRequired != nil {
-				r.OnReauthRequired("refresh token revoked or expired")
+			// Capture callback before unlocking.
+			reauthCb := r.OnReauthRequired
+			r.mu.Unlock()
+			if reauthCb != nil {
+				reauthCb("refresh token revoked or expired")
 			}
 			return StoredToken{}, ErrInvalidGrant
 		}
+		r.mu.Unlock()
 		return StoredToken{}, fmt.Errorf("auth: refresh failed: %w", err)
 	}
 
@@ -298,11 +305,16 @@ func (r *TokenRefresher) GetValidToken() (StoredToken, error) {
 	}
 
 	if err := r.store.Save(newToken); err != nil {
+		r.mu.Unlock()
 		return StoredToken{}, fmt.Errorf("auth: persist refreshed token: %w", err)
 	}
 
-	if r.OnRefresh != nil {
-		r.OnRefresh(newToken)
+	// Capture callback before unlocking.
+	refreshCb := r.OnRefresh
+	r.mu.Unlock()
+
+	if refreshCb != nil {
+		refreshCb(newToken)
 	}
 
 	return newToken, nil

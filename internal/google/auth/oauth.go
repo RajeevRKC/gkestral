@@ -43,6 +43,9 @@ type OAuthClient struct {
 	tokenURL     string
 	flowTimeout  time.Duration
 
+	// HTTPClient is used for token exchange requests. Defaults to http.DefaultClient.
+	HTTPClient *http.Client
+
 	// OpenBrowserFunc is called to open the auth URL in the user's browser.
 	// Defaults to OpenBrowser. Override for testing.
 	OpenBrowserFunc func(url string) error
@@ -98,6 +101,7 @@ func NewOAuthClient(opts ...OAuthOption) *OAuthClient {
 		authURL:         GoogleAuthURL,
 		tokenURL:        GoogleTokenURL,
 		flowTimeout:     5 * time.Minute,
+		HTTPClient:      http.DefaultClient,
 		OpenBrowserFunc: OpenBrowser,
 	}
 	for _, opt := range opts {
@@ -263,7 +267,7 @@ func (o *OAuthClient) exchangeCode(ctx context.Context, code, verifier, redirect
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := o.HTTPClient.Do(req)
 	if err != nil {
 		return StoredToken{}, fmt.Errorf("auth: token exchange: %w", err)
 	}

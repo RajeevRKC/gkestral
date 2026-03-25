@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 
 	"gkestral/internal/google/transport"
 )
@@ -183,18 +184,12 @@ func buildMultipartRelated(metadataJSON, content []byte, contentMIME string) (io
 	return &buf, "multipart/related; boundary=" + boundary
 }
 
-// randomBoundary generates a simple boundary string.
+// randomBoundary generates a unique boundary string (thread-safe).
 func randomBoundary() string {
-	// Use timestamp-based boundary for simplicity (no crypto needed for boundaries).
-	return fmt.Sprintf("%d", uniqueCounter())
+	return fmt.Sprintf("%d", boundaryCounter.Add(1))
 }
 
-var boundaryCounter int64
-
-func uniqueCounter() int64 {
-	boundaryCounter++
-	return boundaryCounter
-}
+var boundaryCounter atomic.Int64
 
 // detectMIME guesses MIME type from file extension.
 func detectMIME(name string) string {

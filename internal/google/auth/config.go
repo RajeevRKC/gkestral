@@ -49,9 +49,14 @@ func LoadCredentials() (ClientCredentials, error) {
 		return ClientCredentials{ClientID: id, ClientSecret: secret}, nil
 	}
 
-	// 2. Config file.
-	if creds, err := loadCredentialsFile(); err == nil {
+	// 2. Config file (only suppress "not found" -- surface parse/permission errors).
+	creds, err := loadCredentialsFile()
+	if err == nil {
 		return creds, nil
+	}
+	if !os.IsNotExist(err) && !errors.Is(err, os.ErrNotExist) {
+		// File exists but is malformed or unreadable -- surface the error.
+		return ClientCredentials{}, fmt.Errorf("auth: credentials file: %w", err)
 	}
 
 	// 3. Bundled credentials (production).
