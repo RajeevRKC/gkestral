@@ -184,12 +184,14 @@ func OpenBrowser(rawURL string) error {
 }
 
 // VerifyAPIKey checks that a Gemini API key is valid by making a test request.
+// Uses x-goog-api-key header to avoid leaking the key in URL query strings.
 func VerifyAPIKey(ctx context.Context, apiKey string) error {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models?key=%s&pageSize=1", apiKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
+		"https://generativelanguage.googleapis.com/v1beta/models?pageSize=1", nil)
 	if err != nil {
 		return err
 	}
+	req.Header.Set("x-goog-api-key", apiKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("verify API key: %w", err)

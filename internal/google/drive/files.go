@@ -3,6 +3,8 @@ package drive
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync/atomic"
 
 	"gkestral/internal/google/transport"
 )
@@ -184,12 +185,16 @@ func buildMultipartRelated(metadataJSON, content []byte, contentMIME string) (io
 	return &buf, "multipart/related; boundary=" + boundary
 }
 
-// randomBoundary generates a unique boundary string (thread-safe).
+// randomBoundary generates a cryptographically random boundary string.
+// Prevents content collision attacks where file data contains the boundary.
 func randomBoundary() string {
-	return fmt.Sprintf("%d", boundaryCounter.Add(1))
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback: should never happen with crypto/rand.
+		return "gkestral_fallback_boundary"
+	}
+	return hex.EncodeToString(b)
 }
-
-var boundaryCounter atomic.Int64
 
 // detectMIME guesses MIME type from file extension.
 func detectMIME(name string) string {

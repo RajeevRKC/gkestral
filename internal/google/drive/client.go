@@ -201,24 +201,30 @@ func (it *DriveFileIterator) Next() (*DriveFile, error) {
 		return f, nil
 	}
 
-	// Buffer exhausted -- fetch next page.
-	if it.done {
-		return nil, nil
-	}
+	// Buffer exhausted -- fetch next page(s).
+	// Drive API can return empty files[] with a valid nextPageToken during
+	// filtered searches. Loop until we get items or truly run out of pages.
+	for {
+		if it.done {
+			return nil, nil
+		}
 
-	it.err = it.fetchPage()
-	if it.err != nil {
-		return nil, it.err
-	}
+		it.err = it.fetchPage()
+		if it.err != nil {
+			return nil, it.err
+		}
 
-	if len(it.buffer) == 0 {
-		it.done = true
-		return nil, nil
-	}
+		if len(it.buffer) > 0 {
+			f := &it.buffer[0]
+			it.bufIdx = 1
+			return f, nil
+		}
 
-	f := &it.buffer[0]
-	it.bufIdx = 1
-	return f, nil
+		// Empty page but not done -- keep fetching.
+		if it.done {
+			return nil, nil
+		}
+	}
 }
 
 // Stop terminates iteration early.

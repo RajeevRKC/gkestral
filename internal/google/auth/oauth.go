@@ -147,18 +147,26 @@ func (o *OAuthClient) DesktopFlow(ctx context.Context) (StoredToken, error) {
 
 	redirectURI := fmt.Sprintf("http://127.0.0.1:%d/callback", o.callbackPort)
 
-	var once sync.Once
+	var accepted sync.Once
 	srv := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			once.Do(func() {
-				q := r.URL.Query()
+			q := r.URL.Query()
+
+			// Only accept requests that carry an OAuth state or error param.
+			// Rejects stray requests (port scanners, favicon fetches) that
+			// would otherwise consume the sync.Once.
+			if q.Get("state") == "" && q.Get("error") == "" {
+				http.Error(w, "Not an OAuth callback", http.StatusBadRequest)
+				return
+			}
+
+			accepted.Do(func() {
 				callbackResult <- callbackData{
 					code:  q.Get("code"),
 					state: q.Get("state"),
 					err:   q.Get("error"),
 				}
 			})
-			// Always send a friendly response to the browser.
 			w.Header().Set("Content-Type", "text/html")
 			fmt.Fprint(w, `<html><body><h2>Authentication complete</h2><p>You can close this window and return to Gkestral.</p><script>window.close()</script></body></html>`)
 		}),

@@ -2,7 +2,10 @@
 // Built on the shared transport layer -- no google-api-go-client dependency.
 package gmail
 
-import "time"
+import (
+	"net/mail"
+	"time"
+)
 
 // GmailMessage represents a message with header-level metadata.
 type GmailMessage struct {
@@ -91,9 +94,9 @@ func extractHeaders(msg *GmailMessage, headers []gmailHeader) {
 		case "To":
 			msg.To = h.Value
 		case "Date":
-			if t, err := time.Parse(time.RFC1123Z, h.Value); err == nil {
-				msg.Date = t
-			} else if t, err := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", h.Value); err == nil {
+			// Use net/mail.ParseDate which handles all RFC 5322 date quirks
+			// (missing seconds, single-digit days, non-standard timezones).
+			if t, err := mail.ParseDate(h.Value); err == nil {
 				msg.Date = t
 			}
 		}
