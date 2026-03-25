@@ -119,6 +119,11 @@ func NewOAuthClient(opts ...OAuthOption) *OAuthClient {
 //  6. Validate state, exchange code for tokens
 //  7. Store tokens and return
 func (o *OAuthClient) DesktopFlow(ctx context.Context) (StoredToken, error) {
+	// Validate credentials before starting the flow.
+	if o.clientID == "" || o.clientSecret == "" {
+		return StoredToken{}, errors.New("auth: client ID and secret must be configured before starting OAuth flow")
+	}
+
 	// Generate PKCE code verifier (43-128 unreserved characters).
 	verifier, err := generateCodeVerifier()
 	if err != nil {
@@ -138,6 +143,7 @@ func (o *OAuthClient) DesktopFlow(ctx context.Context) (StoredToken, error) {
 	if err != nil {
 		return StoredToken{}, ErrPortInUse
 	}
+	defer listener.Close() // Ensure listener is closed on ALL exit paths.
 
 	redirectURI := fmt.Sprintf("http://127.0.0.1:%d/callback", o.callbackPort)
 
@@ -294,7 +300,11 @@ func (o *OAuthClient) exchangeCode(ctx context.Context, code, verifier, redirect
 		return StoredToken{}, fmt.Errorf("auth: parse token response: %w", err)
 	}
 
-	expiry := time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second)
+	expiresIn := tokenResp.ExpiresIn
+	if expiresIn <= 0 {
+		expiresIn = 3600 // Default to 1 hour if server returns zero/negative.
+	}
+	expiry := time.Now().Add(time.Duration(expiresIn) * time.Second)
 
 	return StoredToken{
 		AccessToken:  tokenResp.AccessToken,

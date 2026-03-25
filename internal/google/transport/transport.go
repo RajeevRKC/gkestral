@@ -6,6 +6,7 @@ package transport
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,9 +18,9 @@ import (
 
 // Common errors returned by Google API operations.
 var (
-	ErrNotFound     = fmt.Errorf("google: resource not found (404)")
-	ErrForbidden    = fmt.Errorf("google: access denied (403)")
-	ErrUnauthorized = fmt.Errorf("google: authentication required (401)")
+	ErrNotFound     = errors.New("google: resource not found (404)")
+	ErrForbidden    = errors.New("google: access denied (403)")
+	ErrUnauthorized = errors.New("google: authentication required (401)")
 )
 
 // ErrRateLimited is returned when the API returns HTTP 429.
@@ -55,6 +56,9 @@ type GoogleClient struct {
 // NewGoogleClient creates a GoogleClient with the given authenticated HTTP client
 // and base URL (e.g., "https://www.googleapis.com/drive/v3").
 func NewGoogleClient(httpClient *http.Client, baseURL string) *GoogleClient {
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
 	return &GoogleClient{
 		HTTPClient: httpClient,
 		BaseURL:    strings.TrimRight(baseURL, "/"),
@@ -149,6 +153,8 @@ func (c *GoogleClient) DoJSON(ctx context.Context, method, path string, body io.
 	defer resp.Body.Close()
 
 	if result == nil {
+		// Drain body to allow connection reuse, then close.
+		_, _ = io.Copy(io.Discard, resp.Body)
 		return nil
 	}
 
@@ -182,10 +188,10 @@ func PaginatedList[T any](ctx context.Context, c *GoogleClient, path string, ext
 			return all, err
 		}
 
-		body, err := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
 		resp.Body.Close()
-		if err != nil {
-			return all, fmt.Errorf("google: read response: %w", err)
+		if readErr != nil {
+			return all, fmt.Errorf("google: read response: %w", readErr)
 		}
 
 		items, nextToken, err := extract(body)

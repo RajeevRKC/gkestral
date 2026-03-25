@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -323,18 +324,5 @@ func (r *TokenRefresher) GetValidToken() (StoredToken, error) {
 // isInvalidGrant checks if the error represents an OAuth invalid_grant response.
 func isInvalidGrant(err error) bool {
 	return errors.Is(err, ErrInvalidGrant) ||
-		(err != nil && contains(err.Error(), "invalid_grant"))
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && searchString(s, substr)
-}
-
-func searchString(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+		(err != nil && strings.Contains(err.Error(), "invalid_grant"))
 }

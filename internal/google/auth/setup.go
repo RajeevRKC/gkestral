@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -82,8 +84,28 @@ func GCloudListProjects(ctx context.Context) ([]GCloudProject, error) {
 	return projects, nil
 }
 
+// gcpProjectIDRe validates GCP project IDs (lowercase, 6-30 chars, starts with letter).
+var gcpProjectIDRe = regexp.MustCompile(`^[a-z][a-z0-9-]{5,29}$`)
+
+// ValidateProjectID checks that a string is a valid GCP project ID.
+func ValidateProjectID(id string) error {
+	if !gcpProjectIDRe.MatchString(id) {
+		return fmt.Errorf("auth: invalid GCP project ID %q (must be lowercase, 6-30 chars, start with letter)", id)
+	}
+	return nil
+}
+
 // GCloudCreateProject creates a new GCP project.
 func GCloudCreateProject(ctx context.Context, projectID, projectName string) error {
+	if err := ValidateProjectID(projectID); err != nil {
+		return err
+	}
+	// Sanitise project name -- allow only alphanumeric, spaces, hyphens.
+	for _, r := range projectName {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == ' ' || r == '-') {
+			return fmt.Errorf("auth: invalid character %q in project name", r)
+		}
+	}
 	cmd := exec.CommandContext(ctx, "gcloud", "projects", "create", projectID,
 		"--name="+projectName, "--format=json")
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -94,6 +116,9 @@ func GCloudCreateProject(ctx context.Context, projectID, projectName string) err
 
 // GCloudEnableAPIs enables the required Google APIs for Gkestral.
 func GCloudEnableAPIs(ctx context.Context, projectID string) error {
+	if err := ValidateProjectID(projectID); err != nil {
+		return err
+	}
 	apis := []string{
 		"generativelanguage.googleapis.com",
 		"drive.googleapis.com",
@@ -134,15 +159,26 @@ func GetConsoleURLs(projectID string) ConsoleURLs {
 }
 
 // OpenBrowser opens a URL in the user's default browser.
-func OpenBrowser(url string) error {
+// Only https and http schemes are allowed to prevent command injection.
+func OpenBrowser(rawURL string) error {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("auth: invalid URL: %w", err)
+	}
+	if parsed.Scheme != "https" && parsed.Scheme != "http" {
+		return fmt.Errorf("auth: refusing to open non-HTTP URL scheme %q", parsed.Scheme)
+	}
+	// Re-encode to sanitise any injection characters.
+	safeURL := parsed.String()
+
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", safeURL)
 	case "darwin":
-		cmd = exec.Command("open", url)
+		cmd = exec.Command("open", safeURL)
 	default: // linux, freebsd, etc.
-		cmd = exec.Command("xdg-open", url)
+		cmd = exec.Command("xdg-open", safeURL)
 	}
 	return cmd.Start()
 }

@@ -166,8 +166,15 @@ func (g *GmailClient) BatchExtract(ctx context.Context, messageIDs []string, max
 		wg.Add(1)
 		go func(idx int, msgID string) {
 			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
+
+			// Acquire semaphore slot, but respect context cancellation.
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				errs[idx] = ctx.Err()
+				return
+			}
 
 			if err := limiter.Wait(ctx); err != nil {
 				errs[idx] = err
